@@ -54,13 +54,25 @@ That's it — the server binary `paper-research-mcp` is now on your PATH.
 
 ### Connect it to your MCP client
 
-Add one block to your client's MCP config, then **restart the client**:
+Add one block to your client's MCP config, then **restart the client**. This is the
+tested, working shape (ZCode & modern clients that take a bare server map):
 
 ```jsonc
-// ZCode, Claude Desktop, Cursor, and most MCP clients
+{
+  "paper-research": {
+    "type": "stdio",
+    "command": "uvx",
+    "args": ["paper-research-mcp"]
+  }
+}
+```
+
+Clients that wrap servers under a `mcpServers` key (Claude Desktop, Cursor):
+
+```jsonc
 {
   "mcpServers": {
-    "paper-research": { "command": "paper-research-mcp" }
+    "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] }
   }
 }
 ```
@@ -69,19 +81,15 @@ Where the config file lives:
 
 | Client | Config location |
 |---|---|
-| **ZCode** | Settings → MCP servers (`mcpServers` JSON) |
+| **ZCode** | Settings → MCP servers |
 | **Claude Desktop** | macOS: `~/Library/Application Support/Claude/claude_desktop_config.json` · Windows: `%APPDATA%\Claude\claude_desktop_config.json` |
 | **Cursor** | `~/.cursor/mcp.json` (Settings → MCP) |
-| **VS Code (Copilot)** | `.vscode/mcp.json` — uses a `"servers"` key instead of `"mcpServers"` |
-| **Codex CLI** | `~/.codex/config.toml` → `[mcp_servers.paper-research]` with `command = "paper-research-mcp"` |
-| **Any other MCP client** | anything that speaks MCP stdio — same JSON shape |
+| **VS Code (Copilot)** | `.vscode/mcp.json` — servers sit under a `"servers"` key |
+| **Codex CLI** | `~/.codex/config.toml` → `[mcp_servers.paper-research]` with `command = "uvx"`, `args = ["paper-research-mcp"]` |
 
-> **"command not found"?** GUI apps often don't inherit your shell PATH. Use the
-> `uvx` form instead — it works from anywhere:
->
-> ```jsonc
-> { "mcpServers": { "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] } } }
-> ```
+Already `uv tool install`ed and the binary is on your client's PATH? Pointing
+straight at it also works: `"command": "paper-research-mcp"` (same `type`/`args`
+shape as above).
 
 **Verify:** restart your client — all 36 tools appear automatically. From a
 terminal you can also probe it: `paper-research-mcp` prints

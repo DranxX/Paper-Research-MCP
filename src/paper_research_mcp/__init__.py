@@ -1,3 +1,3 @@
 """Paper-Research-MCP — federated academic research retrieval MCP."""
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"

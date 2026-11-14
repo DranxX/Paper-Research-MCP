@@ -37,5 +37,11 @@ are what its workflows call. Without the MCP the skill still works: every workfl
 has manual fallbacks (see `references/tool-map.md` inside the skill).
 
 ```jsonc
-{ "mcpServers": { "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] } } }
+{
+  "paper-research": {
+    "type": "stdio",
+    "command": "uvx",
+    "args": ["paper-research-mcp"]
+  }
+}
 ```

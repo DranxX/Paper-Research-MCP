@@ -53,13 +53,25 @@ Selesai — binary server `paper-research-mcp` sekarang ada di PATH lu.
 
 ### Sambungkan ke client MCP lu
 
-Tambahkan satu blok ke config MCP client lu, lalu **restart client**:
+Tambahkan satu blok ke config MCP client lu, lalu **restart client**. Ini bentuk yang
+sudah dites dan jalan (ZCode & client modern yang nerima bare server map):
 
 ```jsonc
-// ZCode, Claude Desktop, Cursor, dan kebanyakan client MCP
+{
+  "paper-research": {
+    "type": "stdio",
+    "command": "uvx",
+    "args": ["paper-research-mcp"]
+  }
+}
+```
+
+Client yang membungkus server di bawah key `mcpServers` (Claude Desktop, Cursor):
+
+```jsonc
 {
   "mcpServers": {
-    "paper-research": { "command": "paper-research-mcp" }
+    "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] }
   }
 }
 ```
@@ -68,19 +80,14 @@ File config-nya di mana:
 
 | Client | Lokasi config |
 |---|---|
-| **ZCode** | Settings → MCP servers (JSON `mcpServers`) |
+| **ZCode** | Settings → MCP servers |
 | **Claude Desktop** | macOS: `~/Library/Application Support/Claude/claude_desktop_config.json` · Windows: `%APPDATA%\Claude\claude_desktop_config.json` |
 | **Cursor** | `~/.cursor/mcp.json` (Settings → MCP) |
-| **VS Code (Copilot)** | `.vscode/mcp.json` — pakai key `"servers"`, bukan `"mcpServers"` |
-| **Codex CLI** | `~/.codex/config.toml` → `[mcp_servers.paper-research]` dengan `command = "paper-research-mcp"` |
-| **Client MCP lain** | apa pun yang bicara MCP stdio — bentuk JSON-nya sama |
+| **VS Code (Copilot)** | `.vscode/mcp.json` — server ditaruh di bawah key `"servers"` |
+| **Codex CLI** | `~/.codex/config.toml` → `[mcp_servers.paper-research]` dengan `command = "uvx"`, `args = ["paper-research-mcp"]` |
 
-> **"command not found"?** Aplikasi GUI sering tidak mewarisi PATH shell lu. Pakai
-> bentuk `uvx` — jalan dari mana saja:
->
-> ```jsonc
-> { "mcpServers": { "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] } } }
-> ```
+Sudah `uv tool install` dan binary-nya ada di PATH client lu? Nunjuk langsung juga
+bisa: `"command": "paper-research-mcp"` (bentuk `type`/`args` sama seperti di atas).
 
 **Cek:** restart client — semua 36 tool muncul otomatis. Dari terminal juga bisa
 probe: `paper-research-mcp` akan mencetak `36 tools, 5 connector packs ready (stdio)`
