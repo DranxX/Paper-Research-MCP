@@ -12,7 +12,7 @@ skill (`skills/research`).
 [![Tools](https://img.shields.io/badge/tools-36-brightgreen)](#-tools)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](#-license)
 
-**🇮🇩 [Versi Bahasa Indonesia](https://github.com/DranxX/Paper-Research-MCP/blob/main/README_ID.md)** · 📦 **Source code:** [github.com/DranxX/Paper-Research-MCP](https://github.com/DranxX/Paper-Research-MCP)
+**🇮🇩 [Versi Bahasa Indonesia](https://github.com/DranxX/Paper-Research-MCP/blob/main/README_ID.md)** · 📦 **[PyPI](https://pypi.org/project/paper-research-mcp/)**
 
 </div>
 
@@ -43,11 +43,36 @@ federation layer on top handles cross-source search, deduplication, and provenan
 ## 📦 Install
 
 **Requires:** Python ≥ 3.10 and [uv](https://docs.astral.sh/uv/). Deps: `mcp` + `httpx`.
+No API key needed to start.
 
-**Local checkout** — point your MCP client at the folder:
+**From PyPI** — add one block to your MCP client config (ZCode / Claude Desktop /
+Cursor / any MCP client):
 
 ```jsonc
-// ZCode / Claude Desktop / Cursor / any MCP client
+{
+  "mcpServers": {
+    "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] }
+  }
+}
+```
+
+<details>
+<summary>Alternative: installed via <code>uv tool install paper-research-mcp</code></summary>
+
+Point the client at the installed binary instead:
+
+```jsonc
+{ "mcpServers": { "paper-research": { "command": "paper-research-mcp" } } }
+```
+
+WSL note: the binary lands in `~/.local/bin/` — Windows clients can call it via
+`wsl.exe` or use the `uvx` variant above.
+</details>
+
+<details>
+<summary>Local checkout (development)</summary>
+
+```jsonc
 {
   "mcpServers": {
     "paper-research": {
@@ -58,12 +83,55 @@ federation layer on top handles cross-source search, deduplication, and provenan
   }
 }
 ```
+</details>
 
-**Published on PyPI** — after release (see 🚀 Publishing below) it becomes one line:
+## 🚀 Usage
+
+Connect, restart your client — all 36 tools are discovered automatically
+(`tools/list`), zero configuration. Then just ask your agent in plain language:
+
+| You ask | What runs |
+|---|---|
+| *"Survey 2024+ work on LLM watermarking **and** detecting AI-generated text — all free sources"* | `search_papers` with parallel `queries:[]` + `year_from`, cross-source dedup |
+| *"Find the proof of the Pythagorean theorem and its prerequisites"* | `proofwiki_search` → `proofwiki_get` |
+| *"What did reviewers say about this OpenReview submission?"* | `openreview_search` → `openreview_notes` |
+| *"Find code implementations of image-classification papers"* | `pwc_search` |
+| *"Resolve this DOI and find an open-access copy"* | `crossref_doi` → `unpaywall_resolve` |
+| *"Cari jurnal Indonesia soal pertanian"* | `garuda_search` / `neliti_search` / `brin_search` |
+| *"Physics papers mentioning muon g-2"* | `inspire_search` |
+
+<details>
+<summary>Example response (trimmed)</summary>
 
 ```jsonc
-{ "mcpServers": { "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] } } }
+{
+  "status": "ok",
+  "source": "federation",
+  "count": 2,
+  "items": [
+    {
+      "title": "…",
+      "authors": ["…"],
+      "year": 2024,
+      "doi": "10.…",
+      "venue": "…",
+      "abstract": "…",
+      "url": "https://doi.org/10.…",
+      "pdf": "https://…/paper.pdf",
+      "source": "openalex",
+      "extra": { "cited_by_count": 42 },
+      "alsoIn": ["crossref", "semantic_scholar"],
+      "matchedQueries": ["LLM watermarking"]
+    }
+  ],
+  "meta": { "…": "coverage per keyword, year filter, skipped sources" }
+}
 ```
+
+`alsoIn` = other sources holding the same paper (deduped), `matchedQueries` = which
+of your keywords matched. Bot-walled sources come back as `{"status": "blocked"}`
+with a manual-fallback URL — honest, never silent.
+</details>
 
 ## 🔑 Optional API keys
 
@@ -126,7 +194,7 @@ when not — see [`skills/README.md`](skills/README.md) for the one-command inst
 pyproject.toml                      ← uv package ([project.scripts] paper-research-mcp)
 └── src/paper_research_mcp/
     ├── server.py                   ← MCP stdio entry (official `mcp` SDK, lowlevel Server)
-    ├── registry.py                 ← 30 connectors, auth-gating, universal year post-filter
+    ├── registry.py                 ← 31 connectors, auth-gating, universal year post-filter
     ├── federation.py               ← search_papers: queries×sources parallel (pool 8), dedup, provenance
     ├── core.py                     ← httpx w/ timeout, standardized item schema, envelopes, year filter
     └── sources/
@@ -148,18 +216,10 @@ per-category status expectations), all three federation modes, year-filter leak 
 and the MCP stdio handshake in a subprocess. Scraper sources returning `blocked` count
 as PASS — the envelope is the contract, not the network mood. Last run: **38/38 PASS**.
 
-## 🚀 Publishing
+## 🤝 Contributing
 
-```bash
-# 1. Create a PyPI account → Account Settings → API token
-# 2. Dry-run against TestPyPI (optional):
-uv publish --publish-url https://test.pypi.org/legacy/ --token pypi-XXXXXXXX
-# 3. Release:
-uv build
-uv publish --token pypi-XXXXXXXX
-# 4. Anyone can now run it:
-uvx paper-research-mcp
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) — how to run the tests, add a connector, and
+the release process.
 
 ## 📄 License
 

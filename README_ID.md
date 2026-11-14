@@ -41,12 +41,12 @@ layer untuk pencarian lintas sumber, deduplikasi, dan provenance.
 ## 📦 Install
 
 Butuh Python 3.10 ke atas dan [uv](https://docs.astral.sh/uv/). Dependensinya hanya `mcp`
-dan `httpx`.
+dan `httpx`. Tanpa API key untuk mulai.
 
-**Dari PyPI** — setelah paket ini rilis:
+**Dari PyPI** — tambahkan satu blok ke config client MCP lu (ZCode / Claude Desktop /
+Cursor / client MCP apa pun):
 
 ```jsonc
-// ZCode / Claude Desktop / Cursor / client MCP apa pun
 {
   "mcpServers": {
     "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] }
@@ -54,18 +54,82 @@ dan `httpx`.
 }
 ```
 
-**Dari checkout lokal** — tanpa publish:
+<details>
+<summary>Alternatif: yang install via <code>uv tool install paper-research-mcp</code></summary>
+
+Arahkan client ke binary yang sudah terinstall:
+
+```jsonc
+{ "mcpServers": { "paper-research": { "command": "paper-research-mcp" } } }
+```
+
+Catatan WSL: binary ada di `~/.local/bin/` — client Windows bisa panggil lewat
+`wsl.exe` atau pakai varian `uvx` di atas.
+</details>
+
+<details>
+<summary>Checkout lokal (untuk development)</summary>
 
 ```jsonc
 {
   "mcpServers": {
     "paper-research": {
       "command": "uv",
-      "args": ["--directory", "<path>/Paper-Research-MCP", "run", "paper-research-mcp"]
+      "args": ["--directory", "<path>/Paper-Research-MCP", "run", "paper-research-mcp"],
+      "env": { "S2_API_KEY": "", "ADS_TOKEN": "", "SCOPUS_API_KEY": "" }
     }
   }
 }
 ```
+</details>
+
+## 🚀 Usage
+
+Connect, restart client lu — semua 36 tool terdeteksi otomatis (`tools/list`), tanpa
+konfigurasi tambahan. Lalu tinggal minta agent lu dengan bahasa sehari-hari:
+
+| Lu minta | Yang jalan |
+|---|---|
+| *"Survey paper 2024+ soal LLM watermarking **dan** deteksi teks AI — semua sumber free"* | `search_papers` dengan parallel `queries:[]` + `year_from`, dedup lintas sumber |
+| *"Cari bukti teorema Pythagoras beserta prasyaratnya"* | `proofwiki_search` → `proofwiki_get` |
+| *"Reviewer bilang apa soal submission OpenReview ini?"* | `openreview_search` → `openreview_notes` |
+| *"Cari implementasi kode paper image-classification"* | `pwc_search` |
+| *"Resolve DOI ini dan cari salinan open-access"* | `crossref_doi` → `unpaywall_resolve` |
+| *"Cari jurnal Indonesia soal pertanian"* | `garuda_search` / `neliti_search` / `brin_search` |
+| *"Paper fisika soal muon g-2"* | `inspire_search` |
+
+<details>
+<summary>Contoh respons (dipotong)</summary>
+
+```jsonc
+{
+  "status": "ok",
+  "source": "federation",
+  "count": 2,
+  "items": [
+    {
+      "title": "…",
+      "authors": ["…"],
+      "year": 2024,
+      "doi": "10.…",
+      "venue": "…",
+      "abstract": "…",
+      "url": "https://doi.org/10.…",
+      "pdf": "https://…/paper.pdf",
+      "source": "openalex",
+      "extra": { "cited_by_count": 42 },
+      "alsoIn": ["crossref", "semantic_scholar"],
+      "matchedQueries": ["LLM watermarking"]
+    }
+  ],
+  "meta": { "…": "coverage per keyword, year filter, skipped sources" }
+}
+```
+
+`alsoIn` = sumber lain yang juga memuat paper yang sama (sudah didedup),
+`matchedQueries` = keyword lu yang mana yang match. Sumber bot-wall balik sebagai
+`{"status": "blocked"}` plus URL fallback manual — jujur, bukan error diam-diam.
+</details>
 
 ## 🔑 API key opsional
 
@@ -128,7 +192,7 @@ manual saat tidak — install satu perintah ada di
 pyproject.toml                      ← paket uv ([project.scripts] paper-research-mcp)
 └── src/paper_research_mcp/
     ├── server.py                   ← pintu masuk MCP stdio (SDK `mcp` resmi, lowlevel Server)
-    ├── registry.py                 ← 30 connector, auth-gating, post-filter tahun universal
+    ├── registry.py                 ← 31 connector, auth-gating, post-filter tahun universal
     ├── federation.py               ← search_papers: queries×sources paralel (pool 8), dedup, provenance
     ├── core.py                     ← httpx dengan timeout, skema item standar, envelope, year filter
     └── sources/
@@ -152,21 +216,10 @@ handshake protokol MCP stdio di subprocess. Hasil terakhir: 38/38 PASS.
 Tool scraper yang `blocked` (bot-wall, maintenance, DNS) dihitung PASS. Kontraknya adalah
 envelope yang benar, bukan mood jaringan.
 
-## 🚀 Publishing
+## 🤝 Kontribusi
 
-```bash
-# 1. Buat akun PyPI → Account Settings → API token
-# 2. Dry-run ke TestPyPI (opsional):
-uv publish --publish-url https://test.pypi.org/legacy/ --token pypi-XXXX
-# 3. Rilis:
-uv build
-uv publish --token pypi-XXXX
-# 4. Setelah itu siapa pun bisa langsung jalankan:
-uvx paper-research-mcp
-```
-
-Rilis otomatis dari GitHub juga bisa lewat Trusted Publishing — lihat
-[`.github/workflows/publish.yml`](.github/workflows/publish.yml).
+Lihat [CONTRIBUTING.md](CONTRIBUTING.md) — cara menjalankan test, menambah connector,
+dan proses rilis.
 
 ## 📄 License
 
