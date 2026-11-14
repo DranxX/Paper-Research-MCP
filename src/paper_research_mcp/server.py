@@ -15,7 +15,7 @@ from .federation import search_papers
 from .registry import CONNECTORS, all_tools, call_tool
 
 SERVER_INFO = Server("paper-research-mcp")
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("paper-research-mcp")

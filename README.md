@@ -2,13 +2,14 @@
 
 # Paper-Research-MCP
 
-**Federated academic research retrieval over MCP** — 30 connectors, 34 tools,
-one standardized result schema.
+**Federated academic research retrieval over MCP** — 31 connectors, 36 tools,
+one standardized result schema. Now with **ProofWiki** + a companion skill for
+math research (`skills/math-research`).
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
 [![MCP](https://img.shields.io/badge/protocol-MCP_2024--11--05-orange)](https://modelcontextprotocol.io)
-[![Connectors](https://img.shields.io/badge/connectors-30-blueviolet)](#-connectors)
-[![Tools](https://img.shields.io/badge/tools-34-brightgreen)](#-tools)
+[![Connectors](https://img.shields.io/badge/connectors-31-blueviolet)](#-connectors)
+[![Tools](https://img.shields.io/badge/tools-36-brightgreen)](#-tools)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](#-license)
 
 **🇮🇩 [Versi Bahasa Indonesia](https://github.com/DranxX/Paper-Research-MCP/blob/main/README_ID.md)** · 📦 **Source code:** [github.com/DranxX/Paper-Research-MCP](https://github.com/DranxX/Paper-Research-MCP)
@@ -84,7 +85,7 @@ env var is set (see [`.env.example`](.env.example)):
 | Category | Sources |
 |---|---|
 | **FREE** (default on) | OpenAlex · Crossref · arXiv · DOAJ · OpenReview · INSPIRE-HEP · ERIC · Unpaywall · ORCID · NSSD (China SSH) · ScienceDB |
-| **FREE, bot-wall/rate-limited** (default on, honest errors) | Semantic Scholar · Papers with Code · Google Scholar · Baidu Scholar · GARUDA · SINTA · OneSearch · RAMA · Moraref · Neliti · BRIN |
+| **FREE, bot-wall/rate-limited** (default on, honest errors) | Semantic Scholar · Papers with Code · Google Scholar · Baidu Scholar · GARUDA · SINTA · OneSearch · RAMA · Moraref · Neliti · BRIN · ProofWiki (math proofs) |
 | **API KEY** (dormant until env set) | NASA ADS · AlphaXiv · Scopus · The Lens · Dimensions · Web of Science · AMiner · CSTR |
 
 > 🇮🇩 The `indonesia_research` block follows the Reference.md warning: these platforms
@@ -92,16 +93,29 @@ env var is set (see [`.env.example`](.env.example)):
 
 ## 🛠 Tools
 
-**34 tools** are auto-discovered by any MCP client via `tools/list` — no configuration
-needed. Two entry points worth knowing:
+**36 tools** are auto-discovered by any MCP client via `tools/list` — no configuration
+needed. Three entry points worth knowing:
 
 - `search_papers` — federated search; supports single `query` or parallel
   `queries: ["k1","k2"]`, date bounds `year_from`/`year_to`, source selection,
   dedup by DOI → title, and provenance (`alsoIn` + `matchedQueries`)
 - `list_sources` — every connector with its access category and env status
 
+Math sources: `proofwiki_search` / `proofwiki_get` (ProofWiki — definitions, theorems,
+complete proofs; Cloudflare best-effort with honest `blocked` envelopes).
+
 Full per-source tools (e.g. `openalex_search`, `openreview_notes`, `garuda_search`) are
 listed by your client automatically after connecting.
+
+## 🧩 Skills
+
+[`skills/math-research/`](skills/math-research/) — a companion agent skill (SKILL.md
+router + `workflows/` + `references/`) for mathematical research: **theorem hunting**
+(check existing results via ProofWiki before reproving), **step-by-step proof
+verification** with a rigor checklist, **counterexample hunting**, **literature
+scans**, and **numeric sanity checks**. It uses this MCP's tools when connected and
+falls back to manual search when not — see [`skills/README.md`](skills/README.md)
+for the one-command install (copy the folder into your agent's skills directory).
 
 ## 🏗 Architecture
 
@@ -116,7 +130,8 @@ pyproject.toml                      ← uv package ([project.scripts] paper-rese
         ├── free.py        (11)  OpenAlex Crossref arXiv DOAJ S2 OpenReview INSPIRE ERIC Unpaywall ORCID PwC
         ├── indonesia.py    (8)  GARUDA SINTA OneSearch RAMA Moraref Neliti BRIN Google Scholar
         ├── china.py        (5)  NSSD Baidu Scholar AMiner ScienceDB CSTR
-        └── premium.py      (6)  ADS AlphaXiv Scopus Lens Dimensions WoS
+        ├── premium.py      (6)  ADS AlphaXiv Scopus Lens Dimensions WoS
+        └── proofwiki.py    (1)  ProofWiki search/get (MediaWiki API, CC BY-SA)
 ```
 
 ## 🧪 Testing
@@ -125,10 +140,10 @@ pyproject.toml                      ← uv package ([project.scripts] paper-rese
 uv run python tests/e2e_all_tools.py
 ```
 
-Live suite with **36 checks**: all 34 tools one by one (envelope-shape validation +
+Live suite with **38 checks**: all 36 tools one by one (envelope-shape validation +
 per-category status expectations), all three federation modes, year-filter leak checks,
 and the MCP stdio handshake in a subprocess. Scraper sources returning `blocked` count
-as PASS — the envelope is the contract, not the network mood. Last run: **36/36 PASS**.
+as PASS — the envelope is the contract, not the network mood. Last run: **38/38 PASS**.
 
 ## 🚀 Publishing
 

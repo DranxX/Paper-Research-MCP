@@ -1,4 +1,4 @@
-# tests/e2e_all_tools.py — live end-to-end test: 34 tools satu per satu + federasi + protokol.
+# tests/e2e_all_tools.py — live end-to-end test: 36 tools satu per satu + federasi + protokol.
 # Jalankan: uv run python tests/e2e_all_tools.py
 # Aturan penilaian:
 #   PASS  = envelope sah (status/source/count/items/meta lengkap) DAN status sesuai ekspektasi kategori
@@ -82,6 +82,12 @@ async def main() -> None:
     await tool("pwc_search", {"query": "image classification", "limit": 2},
                {"ok", "empty", "blocked"}, "endpoint rehost beta — blocked wajar")
 
+    print("── 1b. MATH (2 tools, ProofWiki — Cloudflare best-effort) ──")
+    await tool("proofwiki_search", {"query": "Pythagorean theorem", "limit": 3},
+               {"ok", "empty", "blocked"}, "Cloudflare challenge dari jaringan ini = blocked wajar")
+    await tool("proofwiki_get", {"page": "Pythagorean Theorem"},
+               {"ok", "empty", "blocked", "error"}, "challenge = blocked wajar; empty = judul tak persis")
+
     print("── 2. CHINA (5 tools) ──")
     await tool("nssd_search", {"query": "知识 图谱", "limit": 2}, {"ok", "empty", "error"},
                "403 flaky wajar (sudah ada retry)")
@@ -164,13 +170,25 @@ async def main() -> None:
         json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}),
         json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}),
     ]) + "\n"
+    # stdin DIJAGA TERBUKA sampai respons tools/list terbaca — communicate() menutup stdin
+    # sehingga server kena EOF dan bisa shutdown sebelum respons terakhir flush (race
+    # response-vs-shutdown; gejala: tools=0 walau server hidup).
+    parsed: list[dict] = []
     try:
-        out, _ = await asyncio.wait_for(proc.communicate(reqs.encode()), timeout=30)
-        lines = [json.loads(x) for x in out.decode().strip().split("\n") if x.strip()]
-        init = next((l for l in lines if l.get("id") == 1), None)
-        tl = next((l for l in lines if l.get("id") == 2), None)
+        proc.stdin.write(reqs.encode())
+        await proc.stdin.drain()
+        while not any(p.get("id") == 2 for p in parsed):
+            raw = await asyncio.wait_for(proc.stdout.readline(), timeout=30)
+            if not raw:
+                break
+            try:
+                parsed.append(json.loads(raw.decode()))
+            except json.JSONDecodeError:
+                pass
+        init = next((p for p in parsed if p.get("id") == 1), None)
+        tl = next((p for p in parsed if p.get("id") == 2), None)
         n_tools = len(tl["result"]["tools"]) if tl else 0
-        ok_proto = bool(init and init["result"]["serverInfo"]["name"] == "paper-research-mcp" and n_tools == 34)
+        ok_proto = bool(init and init["result"]["serverInfo"]["name"] == "paper-research-mcp" and n_tools == 36)
         MATRIX.append({"tool": "stdio[initialize+tools/list]", "status": "ok" if ok_proto else "error",
                        "count": n_tools, "verdict": "PASS" if ok_proto else "FAIL",
                        "note": f"serverInfo={init['result']['serverInfo'] if init else None}, tools={n_tools}"})

@@ -2,13 +2,14 @@
 
 # Paper-Research-MCP
 
-**MCP server untuk pencarian paper akademik** — 30 connector, 34 tools, satu skema hasil
-yang seragam.
+**MCP server untuk pencarian paper akademik** — 31 connector, 36 tools, satu skema hasil
+yang seragam. Kini dengan **ProofWiki** + skill pendamping riset matematika
+(`skills/math-research`).
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
 [![MCP](https://img.shields.io/badge/protocol-MCP_2024--11--05-orange)](https://modelcontextprotocol.io)
-[![Connectors](https://img.shields.io/badge/connectors-30-blueviolet)](#-connectors)
-[![Tools](https://img.shields.io/badge/tools-34-brightgreen)](#-tools)
+[![Connectors](https://img.shields.io/badge/connectors-31-blueviolet)](#-connectors)
+[![Tools](https://img.shields.io/badge/tools-36-brightgreen)](#-tools)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](#-license)
 
 **🇬🇧 [English Version](README.md)** · **📦 [PyPI](https://pypi.org/project/paper-research-mcp/)**
@@ -87,7 +88,7 @@ Semua connector free jalan tanpa key. Connector premium baru aktif setelah env-n
 | Kategori | Sumber |
 |---|---|
 | **FREE** (default on) | OpenAlex · Crossref · arXiv · DOAJ · OpenReview · INSPIRE-HEP · ERIC · Unpaywall · ORCID · NSSD (SSH China) · ScienceDB |
-| **FREE, bot-wall/rate-limit** (default on, error jujur) | Semantic Scholar · Papers with Code · Google Scholar · Baidu Scholar · GARUDA · SINTA · OneSearch · RAMA · Moraref · Neliti · BRIN |
+| **FREE, bot-wall/rate-limit** (default on, error jujur) | Semantic Scholar · Papers with Code · Google Scholar · Baidu Scholar · GARUDA · SINTA · OneSearch · RAMA · Moraref · Neliti · BRIN · ProofWiki (bukti matematika) |
 | **API KEY** (baru aktif setelah env diisi) | NASA ADS · AlphaXiv · Scopus · The Lens · Dimensions · Web of Science · AMiner · CSTR |
 
 > 🇮🇩 Blok `indonesia_research` mengikuti peringatan Reference.md: platform ini tidak punya
@@ -95,16 +96,29 @@ Semua connector free jalan tanpa key. Connector premium baru aktif setelah env-n
 
 ## 🛠 Tools
 
-**34 tools** otomatis terdeteksi oleh client MCP lewat `tools/list`. Tidak perlu konfigurasi
-tambahan. Dua entry point yang penting:
+**36 tools** otomatis terdeteksi oleh client MCP lewat `tools/list`. Tidak perlu konfigurasi
+tambahan. Tiga entry point yang penting:
 
 - `search_papers` — pencarian federasi. Mendukung `query` tunggal atau parallel
   `queries: ["k1", "k2"]`, batas tanggal `year_from`/`year_to`, pemilihan sumber, dedup
   DOI → title, dan provenance (`alsoIn` + `matchedQueries`).
 - `list_sources` — daftar semua connector, kategori aksesnya, dan status env.
 
+Sumber matematika: `proofwiki_search` / `proofwiki_get` (ProofWiki — definisi, teorema,
+bukti lengkap; Cloudflare best-effort dengan envelope `blocked` yang jujur).
+
 Tools per sumber (misalnya `openalex_search`, `openreview_notes`, `garuda_search`) muncul
 otomatis di client setelah terhubung.
+
+## 🧩 Skills
+
+[`skills/math-research/`](skills/math-research/) — skill agent pendamping (SKILL.md router
++ `workflows/` + `references/`) untuk riset matematis: **theorem hunting** (cek hasil yang
+sudah ada via ProofWiki sebelum membuktikan ulang), **verifikasi bukti langkah demi
+langkah** dengan rigor checklist, **hunting counterexample**, **survei literatur**, dan
+**sanity check numerik**. Skill ini memakai tools MCP ini saat terhubung dan fallback ke
+pencarian manual saat tidak — install satu perintah ada di
+[`skills/README.md`](skills/README.md) (salin folder skill ke direktori skills agent-mu).
 
 ## 🏗 Arsitektur
 
@@ -119,7 +133,8 @@ pyproject.toml                      ← paket uv ([project.scripts] paper-resear
         ├── free.py        (11)  OpenAlex Crossref arXiv DOAJ S2 OpenReview INSPIRE ERIC Unpaywall ORCID PwC
         ├── indonesia.py    (8)  GARUDA SINTA OneSearch RAMA Moraref Neliti BRIN Google Scholar
         ├── china.py        (5)  NSSD Baidu Scholar AMiner ScienceDB CSTR
-        └── premium.py      (6)  ADS AlphaXiv Scopus Lens Dimensions WoS
+        ├── premium.py      (6)  ADS AlphaXiv Scopus Lens Dimensions WoS
+        └── proofwiki.py    (1)  ProofWiki search/get (MediaWiki API, CC BY-SA)
 ```
 
 ## 🧪 Testing
@@ -128,9 +143,9 @@ pyproject.toml                      ← paket uv ([project.scripts] paper-resear
 uv run python tests/e2e_all_tools.py
 ```
 
-Suite live berisi 36 pengecekan: seluruh 34 tool satu per satu, validasi bentuk envelope,
+Suite live berisi 38 pengecekan: seluruh 36 tool satu per satu, validasi bentuk envelope,
 ekspektasi status per kategori, ketiga mode federasi, cek kebocoran filter tahun, dan
-handshake protokol MCP stdio di subprocess. Hasil terakhir: 36/36 PASS.
+handshake protokol MCP stdio di subprocess. Hasil terakhir: 38/38 PASS.
 
 Tool scraper yang `blocked` (bot-wall, maintenance, DNS) dihitung PASS. Kontraknya adalah
 envelope yang benar, bukan mood jaringan.

@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "paper-research-mcp"
-version = "0.1.1"
-description = "Paper-Research-MCP — federated academic research retrieval MCP per the Reference.md expansion plan (Tier 1 international + indonesia_research + China platforms + premium connectors). 30 connectors, 34 tools."
+version = "0.1.2"
+description = "Paper-Research-MCP — federated academic research retrieval MCP per the Reference.md expansion plan (Tier 1 international + indonesia_research + China platforms + premium connectors + ProofWiki math). 31 connectors, 36 tools."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "DranxX" }]
-keywords = ["mcp", "paper-search", "research", "openalex", "crossref", "arxiv", "federated"]
+keywords = ["mcp", "paper-search", "research", "openalex", "crossref", "arxiv", "federated", "proofwiki", "mathematics"]
 dependencies = [
     "mcp>=1.2.0,<2",
     "httpx>=0.27",

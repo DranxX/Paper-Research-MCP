@@ -5,13 +5,14 @@ from __future__ import annotations
 import os
 
 from .core import year_filter
-from .sources import china, free, indonesia, premium
+from .sources import china, free, indonesia, premium, proofwiki
 
 CONNECTORS: list[dict] = [
     free.CONNECTOR,
     china.CONNECTOR,
     indonesia.CONNECTOR,
     premium.CONNECTOR,
+    proofwiki.CONNECTOR,
 ]
 
 
