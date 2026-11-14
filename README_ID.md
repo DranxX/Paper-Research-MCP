@@ -5,13 +5,14 @@
 **MCP server untuk pencarian paper akademik** — 31 connector, 36 tools, satu skema hasil
 yang seragam. Kini dengan **ProofWiki** + skill pendamping riset (`skills/research`).
 
+[![PyPI](https://img.shields.io/pypi/v/paper-research-mcp)](https://pypi.org/project/paper-research-mcp/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
 [![MCP](https://img.shields.io/badge/protocol-MCP_2024--11--05-orange)](https://modelcontextprotocol.io)
 [![Connectors](https://img.shields.io/badge/connectors-31-blueviolet)](#-connectors)
 [![Tools](https://img.shields.io/badge/tools-36-brightgreen)](#-tools)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](#-license)
 
-**🇬🇧 [English Version](README.md)** · **📦 [PyPI](https://pypi.org/project/paper-research-mcp/)**
+**🇬🇧 [English Version](README.md)**
 
 </div>
 
@@ -19,74 +20,86 @@ yang seragam. Kini dengan **ProofWiki** + skill pendamping riset (`skills/resear
 
 ## 📜 Apa itu Paper-Research-MCP?
 
-Server MCP untuk mencari paper akademik dari banyak sumber sekaligus. Rencana connector-nya
-disaring dari dokumen `Refer/Reference.md`. Tujuannya: riset lewat agent jadi lebih luas,
-bukan cuma lebih dalam.
+MCP server **baru** untuk pencarian paper akademik: 31 sumber di balik 36 tools dengan
+satu skema hasil yang seragam — discovery multi-sumber, peer review konferensi, mapping
+paper↔kode, resolusi DOI/open-access, plus federation layer di atasnya yang mencari ke
+banyak sumber sekaligus, melakukan dedup, dan melacak provenance.
 
-Aturan desain utamanya: **jangan samakan semua sumber jadi satu `search_papers()`**. Tiap
-sumber punya connector sendiri dengan tools-nya sendiri (discovery, conference review,
-paper↔code mapping, metadata resolution, resolusi open-access). Di atasnya ada federation
-layer untuk pencarian lintas sumber, deduplikasi, dan provenance.
+- 🔓 **Free-first** — semuanya jalan tanpa API key; connector premium baru aktif kalau
+  env-nya diisi
+- 🧵 **Federated** — `search_papers` meneriarkan satu atau banyak keyword ke semua
+  sumber secara paralel, dedup via DOI → title, menandai `alsoIn` (sumber) dan
+  `matchedQueries` (keyword) per hasil
+- 📅 **Batas tanggal** — `year_from`/`year_to` diterapkan native di API yang mendukung,
+  universal di yang lain
+- 🟢 **Gagal dengan jujur** — bot-wall dan rate limit balik sebagai envelope terstruktur
+  plus URL fallback manual, bukan error diam-diam
 
-- 🔓 **Free-first** — semua connector jalan tanpa API key. Connector premium terdaftar,
-  tapi baru aktif setelah env-nya diisi.
-- 🧵 **Federated** — pencarian lintas sumber dengan dedup DOI → title. Hasil membawa
-  provenance: `alsoIn` (sumber) dan `matchedQueries` (keyword).
-- 📅 **Batas tanggal** — `year_from`/`year_to` diteruskan langsung ke API yang mendukung
-  (OpenAlex, Crossref, arXiv, Semantic Scholar). Sumber lain melewati post-filter.
-- 📦 **Dikemas dengan uv** — Python 3.10+, dependensi hanya `mcp` dan `httpx`.
-- 🟢 **Gagal dengan jujur** — bot-wall dan rate limit dikembalikan sebagai envelope
-  terstruktur plus saran fallback manual, bukan error diam-diam.
+Sumber-sumbernya: OpenAlex, Crossref, arXiv, DOAJ, OpenReview, INSPIRE-HEP, ERIC,
+Unpaywall, ORCID, Papers with Code, Semantic Scholar, ProofWiki (bukti matematika),
+NSSD/Baidu Scholar/AMiner/ScienceDB (China), GARUDA/SINTA/OneSearch/RAMA/Moraref/
+Neliti/BRIN (Indonesia), Google Scholar, dan premium (ADS, AlphaXiv, Scopus, Lens,
+Dimensions, WoS). Tabel lengkap di bawah.
 
 ## 📦 Install
 
-Butuh Python 3.10 ke atas dan [uv](https://docs.astral.sh/uv/). Dependensinya hanya `mcp`
-dan `httpx`. Tanpa API key untuk mulai.
+**Butuh:** [uv](https://docs.astral.sh/uv/). Tanpa API key untuk mulai.
 
-**Dari PyPI** — tambahkan satu blok ke config client MCP lu (ZCode / Claude Desktop /
-Cursor / client MCP apa pun):
+```bash
+uv tool install paper-research-mcp
+```
+
+Selesai — binary server `paper-research-mcp` sekarang ada di PATH lu.
+
+### Sambungkan ke client MCP lu
+
+Tambahkan satu blok ke config MCP client lu, lalu **restart client**:
 
 ```jsonc
+// ZCode, Claude Desktop, Cursor, dan kebanyakan client MCP
 {
   "mcpServers": {
-    "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] }
+    "paper-research": { "command": "paper-research-mcp" }
   }
 }
 ```
 
-<details>
-<summary>Alternatif: yang install via <code>uv tool install paper-research-mcp</code></summary>
+File config-nya di mana:
 
-Arahkan client ke binary yang sudah terinstall:
+| Client | Lokasi config |
+|---|---|
+| **ZCode** | Settings → MCP servers (JSON `mcpServers`) |
+| **Claude Desktop** | macOS: `~/Library/Application Support/Claude/claude_desktop_config.json` · Windows: `%APPDATA%\Claude\claude_desktop_config.json` |
+| **Cursor** | `~/.cursor/mcp.json` (Settings → MCP) |
+| **VS Code (Copilot)** | `.vscode/mcp.json` — pakai key `"servers"`, bukan `"mcpServers"` |
+| **Codex CLI** | `~/.codex/config.toml` → `[mcp_servers.paper-research]` dengan `command = "paper-research-mcp"` |
+| **Client MCP lain** | apa pun yang bicara MCP stdio — bentuk JSON-nya sama |
 
-```jsonc
-{ "mcpServers": { "paper-research": { "command": "paper-research-mcp" } } }
+> **"command not found"?** Aplikasi GUI sering tidak mewarisi PATH shell lu. Pakai
+> bentuk `uvx` — jalan dari mana saja:
+>
+> ```jsonc
+> { "mcpServers": { "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] } } }
+> ```
+
+**Cek:** restart client — semua 36 tool muncul otomatis. Dari terminal juga bisa
+probe: `paper-research-mcp` akan mencetak `36 tools, 5 connector packs ready (stdio)`
+lalu menunggu (Ctrl+C untuk keluar).
+
+**Update / hapus:**
+
+```bash
+uv tool upgrade paper-research-mcp
+uv tool uninstall paper-research-mcp
 ```
 
-Catatan WSL: binary ada di `~/.local/bin/` — client Windows bisa panggil lewat
-`wsl.exe` atau pakai varian `uvx` di atas.
-</details>
-
-<details>
-<summary>Checkout lokal (untuk development)</summary>
-
-```jsonc
-{
-  "mcpServers": {
-    "paper-research": {
-      "command": "uv",
-      "args": ["--directory", "<path>/Paper-Research-MCP", "run", "paper-research-mcp"],
-      "env": { "S2_API_KEY": "", "ADS_TOKEN": "", "SCOPUS_API_KEY": "" }
-    }
-  }
-}
-```
-</details>
+**Dari checkout lokal (development):** `uv run paper-research-mcp` di dalam folder
+repo, atau arahkan client ke `uv --directory <path>/Paper-Research-MCP run
+paper-research-mcp`. Lihat [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 🚀 Usage
 
-Connect, restart client lu — semua 36 tool terdeteksi otomatis (`tools/list`), tanpa
-konfigurasi tambahan. Lalu tinggal minta agent lu dengan bahasa sehari-hari:
+Connect, lalu tinggal minta agent lu dengan bahasa sehari-hari:
 
 | Lu minta | Yang jalan |
 |---|---|

@@ -6,13 +6,14 @@
 one standardized result schema. Now with **ProofWiki** + a companion research
 skill (`skills/research`).
 
+[![PyPI](https://img.shields.io/pypi/v/paper-research-mcp)](https://pypi.org/project/paper-research-mcp/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
 [![MCP](https://img.shields.io/badge/protocol-MCP_2024--11--05-orange)](https://modelcontextprotocol.io)
 [![Connectors](https://img.shields.io/badge/connectors-31-blueviolet)](#-connectors)
 [![Tools](https://img.shields.io/badge/tools-36-brightgreen)](#-tools)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](#-license)
 
-**🇮🇩 [Versi Bahasa Indonesia](https://github.com/DranxX/Paper-Research-MCP/blob/main/README_ID.md)** · 📦 **[PyPI](https://pypi.org/project/paper-research-mcp/)**
+**🇮🇩 [Versi Bahasa Indonesia](https://github.com/DranxX/Paper-Research-MCP/blob/main/README_ID.md)**
 
 </div>
 
@@ -20,75 +21,86 @@ skill (`skills/research`).
 
 ## 📜 What is Paper-Research-MCP?
 
-A brand-new **MCP server for academic paper search**, distilled from the expansion plan
-in `Collection/Markdown/Refer/Reference.md` — absorbed while curating three upstream
-collections plus that additional reference, to make agent-side research *broader*, not
-just deeper.
+A brand-new **MCP server for academic paper search**: 31 sources behind 36 tools
+with one standardized result schema — multi-source discovery, conference peer
+reviews, paper↔code mapping, DOI/OA resolution, and a federation layer on top that
+searches many sources at once, deduplicates, and tracks provenance.
 
-It implements the document's core design rule: **don't flatten every source into one
-`search_papers()`**. Each source is its own connector with its own tools (discovery,
-conference review, paper↔code mapping, metadata resolution, OA resolution), and a
-federation layer on top handles cross-source search, deduplication, and provenance.
+- 🔓 **Free-first** — everything works without an API key; premium connectors wake
+  up only if you set their env vars
+- 🧵 **Federated** — `search_papers` fans one or many keywords out to every source
+  in parallel, dedups by DOI → title, tags `alsoIn` (sources) and `matchedQueries`
+  (keywords) per result
+- 📅 **Date-bounded** — `year_from`/`year_to` enforced natively where the API
+  supports it, universally everywhere else
+- 🟢 **Honest failures** — bot-walls and rate limits come back as structured
+  envelopes with a manual-fallback URL, never silent lies
 
-- 🔓 **Free-first** — everything runs without an API key; premium connectors are
-  registered but dormant until you set their env vars
-- 🧵 **Federated** — cross-source search with DOI → title dedup and `alsoIn`/`matchedQueries`
-  provenance
-- 📅 **Date-bounded** — `year_from`/`year_to` passed natively to APIs that support it,
-  universal post-filter for the rest
-- 📦 **uv-packaged** — Python ≥ 3.10, deps only `mcp` + `httpx`
-- 🟢 **Honest failures** — bot-walls and rate limits return structured envelopes with
-  manual-fallback suggestions, never silent lies
+Sources: OpenAlex, Crossref, arXiv, DOAJ, OpenReview, INSPIRE-HEP, ERIC, Unpaywall,
+ORCID, Papers with Code, Semantic Scholar, ProofWiki (math proofs), NSSD/Baidu
+Scholar/AMiner/ScienceDB (China), GARUDA/SINTA/OneSearch/RAMA/Moraref/Neliti/BRIN
+(Indonesia), Google Scholar, and premium ones (ADS, AlphaXiv, Scopus, Lens,
+Dimensions, WoS). Full table below.
 
 ## 📦 Install
 
-**Requires:** Python ≥ 3.10 and [uv](https://docs.astral.sh/uv/). Deps: `mcp` + `httpx`.
-No API key needed to start.
+**Requires:** [uv](https://docs.astral.sh/uv/). No API key needed to start.
 
-**From PyPI** — add one block to your MCP client config (ZCode / Claude Desktop /
-Cursor / any MCP client):
+```bash
+uv tool install paper-research-mcp
+```
+
+That's it — the server binary `paper-research-mcp` is now on your PATH.
+
+### Connect it to your MCP client
+
+Add one block to your client's MCP config, then **restart the client**:
 
 ```jsonc
+// ZCode, Claude Desktop, Cursor, and most MCP clients
 {
   "mcpServers": {
-    "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] }
+    "paper-research": { "command": "paper-research-mcp" }
   }
 }
 ```
 
-<details>
-<summary>Alternative: installed via <code>uv tool install paper-research-mcp</code></summary>
+Where the config file lives:
 
-Point the client at the installed binary instead:
+| Client | Config location |
+|---|---|
+| **ZCode** | Settings → MCP servers (`mcpServers` JSON) |
+| **Claude Desktop** | macOS: `~/Library/Application Support/Claude/claude_desktop_config.json` · Windows: `%APPDATA%\Claude\claude_desktop_config.json` |
+| **Cursor** | `~/.cursor/mcp.json` (Settings → MCP) |
+| **VS Code (Copilot)** | `.vscode/mcp.json` — uses a `"servers"` key instead of `"mcpServers"` |
+| **Codex CLI** | `~/.codex/config.toml` → `[mcp_servers.paper-research]` with `command = "paper-research-mcp"` |
+| **Any other MCP client** | anything that speaks MCP stdio — same JSON shape |
 
-```jsonc
-{ "mcpServers": { "paper-research": { "command": "paper-research-mcp" } } }
+> **"command not found"?** GUI apps often don't inherit your shell PATH. Use the
+> `uvx` form instead — it works from anywhere:
+>
+> ```jsonc
+> { "mcpServers": { "paper-research": { "command": "uvx", "args": ["paper-research-mcp"] } } }
+> ```
+
+**Verify:** restart your client — all 36 tools appear automatically. From a
+terminal you can also probe it: `paper-research-mcp` prints
+`36 tools, 5 connector packs ready (stdio)` and waits (Ctrl+C exits).
+
+**Update / remove:**
+
+```bash
+uv tool upgrade paper-research-mcp
+uv tool uninstall paper-research-mcp
 ```
 
-WSL note: the binary lands in `~/.local/bin/` — Windows clients can call it via
-`wsl.exe` or use the `uvx` variant above.
-</details>
-
-<details>
-<summary>Local checkout (development)</summary>
-
-```jsonc
-{
-  "mcpServers": {
-    "paper-research": {
-      "command": "uv",
-      "args": ["--directory", "<path>/Paper-Research-MCP", "run", "paper-research-mcp"],
-      "env": { "S2_API_KEY": "", "ADS_TOKEN": "", "SCOPUS_API_KEY": "" }
-    }
-  }
-}
-```
-</details>
+**From a local checkout (development):** `uv run paper-research-mcp` inside the
+repo, or point the client at `uv --directory <path>/Paper-Research-MCP run
+paper-research-mcp`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 🚀 Usage
 
-Connect, restart your client — all 36 tools are discovered automatically
-(`tools/list`), zero configuration. Then just ask your agent in plain language:
+Connect, then just ask your agent in plain language:
 
 | You ask | What runs |
 |---|---|
