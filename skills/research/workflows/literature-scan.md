@@ -23,6 +23,7 @@ Preprints for the frontier: `arxiv_search` with field categories
 | Field | Primary | Supplements |
 |---|---|---|
 | Math | arXiv `math.*`, ProofWiki | zbMATH Open (manual, free, MSC codes as keywords) |
+| Formal logic / philosophy / law | ProofWiki Logic pages, `doaj_search`, `search_papers` | PhilPapers, Stanford Encyclopedia of Philosophy, SSRN (manual) |
 | CS / ML / AI | arXiv `cs.*` | `pwc_search` (code), `openreview_search` (reviews/rebuttals) |
 | Physics | `inspire_search` | arXiv `physics.*`/`gr-qc`/`hep-*` |
 | Life sciences / medicine | `openalex_search`, `crossref_search` | PubMed (manual); prefer meta-analyses first |

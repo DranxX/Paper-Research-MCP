@@ -2,8 +2,9 @@
 
 Catalog of classic failure modes in proofs, formal arguments, and empirical claims.
 **Required during proof-verification (step 4)** — run against the evidence, one item
-at a time. Sections 1–9 target formal/mathematical arguments; section 10 targets
-empirical and statistical claims.
+at a time. Sections 1–9 = formal machinery (shared by math, logic, CS correctness,
+theoretical derivations); section 10 = empirical/statistical claims; section 11 =
+argumentation fallacies (philosophy, law, debate, review writing).
 
 Usage: for each applicable item, search the proof/claim for an occurrence. A finding
 = flag the step + quote the ORIGINAL text. Items that do not apply are skipped and
@@ -105,6 +106,32 @@ For studies, papers, and quantitative claims:
   errors are common and decisive.
 - [ ] **Publication/contestation status**: retractions, corrected versions, failed
   replications, meta-analyses contradicting the single study (claim-verification step 4).
+
+## 11. Argumentation & fallacies (philosophy, law, debate, reviews)
+- [ ] **Formal fallacies in conditionals**: affirming the consequent (`P→Q, Q, ∴ P`),
+  denying the antecedent (`P→Q, ¬P, ∴ ¬Q`) — invalid regardless of how plausible
+  the content sounds.
+- [ ] **Illicit conversion/inverse on quantified conditionals**: `∀x(P(x)→Q(x))`
+  licenses contraposition `∀x(¬Q(x)→¬P(x))` but NOT the converse `∀x(Q(x)→P(x))`
+  nor the inverse `∀x(¬P(x)→¬Q(x))`.
+- [ ] **Equivocation**: a key term shifts meaning mid-argument ("fair" as equitable
+  then as probabilistic; "theory" as conjecture then as established framework).
+- [ ] **Begging the question**: a premise is a restatement of the conclusion (the
+  argument-level version of circular reasoning, §5).
+- [ ] **False dilemma**: only two options presented where more exist (relevant to
+  "either P or Q, not P, therefore Q" steps).
+- [ ] **Hasty generalization**: universal claim from a weak/few instances —
+  `∃x P(x)` does not support `∀x P(x)` (the mirror error of counterexample hunting).
+- [ ] **Composition / division**: what holds of parts inferred for the whole (or
+  vice versa) without justification.
+- [ ] **Straw man**: the argument attacked is weaker than the one made — verify the
+  claim against its STEELMAN (strongest reasonable form) before any verdict.
+- [ ] **Ad hoc rescue / moving goalposts**: conditions added mid-argument to dodge
+  a counterexample — legitimate only if the revised claim is then re-verified as a
+  NEW claim.
+- [ ] **Appeal to authority beyond its scope**: an expert cited outside their
+  domain, or authority substituted for the argument itself (authorities set
+  priors, they do not close questions).
 
 ## Audit output
 For each failing item: `step/claim L → item (e.g. 4.2 or 10.3) → original quote →

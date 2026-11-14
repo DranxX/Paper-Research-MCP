@@ -9,6 +9,7 @@ failure — move to the fallback (rules 0.2 + §3 in SKILL.md).
 | Field | Connectors | Manual fallbacks |
 |---|---|---|
 | Math | `proofwiki_search`/`proofwiki_get`, `arxiv_search` (`cat:math.*`) | zbMATH Open (https://zbmath.org, free, MSC codes), OEIS (https://oeis.org) |
+| Formal logic / philosophy / law | `proofwiki_search` (Logic pages: propositional & predicate calculus), `doaj_search`, `search_papers` | PhilPapers (https://philpapers.org), Stanford Encyclopedia of Philosophy (https://plato.stanford.edu), SSRN (law), official statute/court databases |
 | CS / ML / AI | `arxiv_search` (`cat:cs.*`), `pwc_search`, `openreview_search`/`openreview_notes` | arXiv listing, OpenReview web, AlphaXiv (`alphaxiv_search`, key) |
 | Physics | `inspire_search` | INSPIRE-HEP web |
 | Life sciences / medicine | `openalex_search`, `crossref_search`, `doaj_search` | PubMed; prefer meta-analyses/systematic reviews |

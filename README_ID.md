@@ -114,10 +114,12 @@ otomatis di client setelah terhubung.
 [`skills/research/`](skills/research/) — skill agent pendamping (SKILL.md router +
 `workflows/` + `references/`) untuk kerja riset di semua bidang: **survei literatur**
 (rute sumber per bidang ke seluruh 31 connector), **verifikasi klaim** (apakah hasil
-yang diklaim benar-benar ada dan apa statusnya), **verifikasi bukti langkah demi
-langkah** dengan rigor checklist, **hunting counterexample/falsifikasi** (matematika +
-empiris), dan **sanity check numerik**. Skill ini memakai tools MCP ini saat terhubung
-dan fallback ke pencarian manual saat tidak — install satu perintah ada di
+yang diklaim benar-benar ada dan apa statusnya), **verifikasi bukti & argumen** —
+matematika, logika formal, correctness CS, penalaran hukum, filosofi — dengan rigor
+checklist yang memisahkan validitas dari soundness, **hunting
+counterexample/falsifikasi** (formal, doktrinal, empiris), dan **sanity check
+numerik**. Skill ini memakai tools MCP ini saat terhubung dan fallback ke pencarian
+manual saat tidak — install satu perintah ada di
 [`skills/README.md`](skills/README.md) (salin folder skill ke direktori skills agent-mu).
 
 ## 🏗 Arsitektur
