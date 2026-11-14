@@ -126,7 +126,7 @@ CONNECTOR = {
     "homepage": "https://proofwiki.org",
     "note": "API MediaWiki gratis tanpa key, tapi Cloudflare-fronted — dari jaringan tertentu kena JS challenge "
             "(probes 14 Nov 2026: blocked). Dari jaringan ber-IP bersih biasanya 200. Konten CC BY-SA 3.0/GFDL — "
-            "atribusi wajib. Kompanion skill: skills/math-research.",
+            "atribusi wajib. Companion skill: skills/research.",
     "tools": [
         {"name": "proofwiki_search", "description": "Cari teorema/definisi/bukti matematika di ProofWiki (proofwiki.org). "
                      "Gratis via MediaWiki API, tapi bisa kena Cloudflare bot-wall (envelope blocked + saran manual). "

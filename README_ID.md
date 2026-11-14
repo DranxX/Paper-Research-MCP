@@ -3,8 +3,7 @@
 # Paper-Research-MCP
 
 **MCP server untuk pencarian paper akademik** — 31 connector, 36 tools, satu skema hasil
-yang seragam. Kini dengan **ProofWiki** + skill pendamping riset matematika
-(`skills/math-research`).
+yang seragam. Kini dengan **ProofWiki** + skill pendamping riset (`skills/research`).
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
 [![MCP](https://img.shields.io/badge/protocol-MCP_2024--11--05-orange)](https://modelcontextprotocol.io)
@@ -112,12 +111,13 @@ otomatis di client setelah terhubung.
 
 ## 🧩 Skills
 
-[`skills/math-research/`](skills/math-research/) — skill agent pendamping (SKILL.md router
-+ `workflows/` + `references/`) untuk riset matematis: **theorem hunting** (cek hasil yang
-sudah ada via ProofWiki sebelum membuktikan ulang), **verifikasi bukti langkah demi
-langkah** dengan rigor checklist, **hunting counterexample**, **survei literatur**, dan
-**sanity check numerik**. Skill ini memakai tools MCP ini saat terhubung dan fallback ke
-pencarian manual saat tidak — install satu perintah ada di
+[`skills/research/`](skills/research/) — skill agent pendamping (SKILL.md router +
+`workflows/` + `references/`) untuk kerja riset di semua bidang: **survei literatur**
+(rute sumber per bidang ke seluruh 31 connector), **verifikasi klaim** (apakah hasil
+yang diklaim benar-benar ada dan apa statusnya), **verifikasi bukti langkah demi
+langkah** dengan rigor checklist, **hunting counterexample/falsifikasi** (matematika +
+empiris), dan **sanity check numerik**. Skill ini memakai tools MCP ini saat terhubung
+dan fallback ke pencarian manual saat tidak — install satu perintah ada di
 [`skills/README.md`](skills/README.md) (salin folder skill ke direktori skills agent-mu).
 
 ## 🏗 Arsitektur

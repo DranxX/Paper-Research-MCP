@@ -3,8 +3,8 @@
 # Paper-Research-MCP
 
 **Federated academic research retrieval over MCP** — 31 connectors, 36 tools,
-one standardized result schema. Now with **ProofWiki** + a companion skill for
-math research (`skills/math-research`).
+one standardized result schema. Now with **ProofWiki** + a companion research
+skill (`skills/research`).
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
 [![MCP](https://img.shields.io/badge/protocol-MCP_2024--11--05-orange)](https://modelcontextprotocol.io)
@@ -109,13 +109,15 @@ listed by your client automatically after connecting.
 
 ## 🧩 Skills
 
-[`skills/math-research/`](skills/math-research/) — a companion agent skill (SKILL.md
-router + `workflows/` + `references/`) for mathematical research: **theorem hunting**
-(check existing results via ProofWiki before reproving), **step-by-step proof
-verification** with a rigor checklist, **counterexample hunting**, **literature
-scans**, and **numeric sanity checks**. It uses this MCP's tools when connected and
-falls back to manual search when not — see [`skills/README.md`](skills/README.md)
-for the one-command install (copy the folder into your agent's skills directory).
+[`skills/research/`](skills/research/) — a companion agent skill (SKILL.md router +
+`workflows/` + `references/`) for research-grade work in any field: **literature
+scans** (field→source routing across all 31 connectors), **claim verification** (is
+a claimed result real, and what's its actual status), **step-by-step proof
+verification** with a rigor checklist, **counterexample / falsification hunts**
+(math + empirical), and **numeric sanity checks**. It uses this MCP's tools when
+connected and falls back to manual search when not — see
+[`skills/README.md`](skills/README.md) for the one-command install (copy the folder
+into your agent's skills directory).
 
 ## 🏗 Architecture
 
