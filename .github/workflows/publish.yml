@@ -1,0 +1,33 @@
+# Publish ke PyPI otomatis saat GitHub release dibuat.
+# Prasyarat (jalur B — Trusted Publishing):
+#   1. Push repo ini ke GitHub (Owner/Repository harus sama dengan yang didaftar
+#      di pypi.org → Account Settings → Publishing → pending publisher).
+#   2. Di PyPI pending publisher form: PyPI Project Name = paper-research-mcp,
+#      Owner = <github user>, Repository name = <repo>, Workflow name = publish.yml.
+#   3. Buat GitHub Release → workflow jalan → ter-publish tanpa token.
+
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: # manual trigger dari tab Actions
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC trusted publishing — JANGAN ganti jadi token di sini
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build
+        run: uv build
+
+      - name: Publish
+        run: uv publish
