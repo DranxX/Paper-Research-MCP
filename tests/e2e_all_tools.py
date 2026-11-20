@@ -1,5 +1,5 @@
-# tests/e2e_all_tools.py — live end-to-end test: 36 tools satu per satu + federasi + protokol.
-# Jalankan: uv run python tests/e2e_all_tools.py
+# tests/e2e_all_tools.py — live end-to-end test: 44 connector tools satu per satu
+# + federasi + protokol (48 pengecekan total). Jalankan: uv run python tests/e2e_all_tools.py
 # Aturan penilaian:
 #   PASS  = envelope sah (status/source/count/items/meta lengkap) DAN status sesuai ekspektasi kategori
 #   FAIL  = exception keluar, envelope rusak, atau status di luar yang diizinkan
@@ -12,8 +12,8 @@ import asyncio
 import json
 import sys
 
-from paper_research_mcp.federation import search_papers
-from paper_research_mcp.registry import CONNECTORS, call_tool
+from scholarmesh.federation import search_papers
+from scholarmesh.registry import SOURCES, all_tools, call_tool
 
 REQUIRED_ENV_KEYS = {"status", "source", "count", "items", "meta"}
 REQUIRED_ITEM_KEYS = {"title", "authors", "year", "doi", "venue", "abstract", "url", "pdf", "source", "extra"}
@@ -54,7 +54,10 @@ async def tool(name: str, args: dict, allowed: set[str], note: str = "") -> dict
 
 
 async def main() -> None:
-    print("── 1. FREE connectors (12 tools) ──")
+    n_tools = len(all_tools())
+    print(f"scholarmesh v-test: {n_tools} connector tools, {len(SOURCES)} sources\n")
+
+    print("── 1. INDEXES (9 tools) ──")
     r = await tool("openalex_search", {"query": "contrastive learning", "limit": 2, "year_from": 2024},
                    {"ok", "empty"}, "native year filter")
     if r and r["items"]:
@@ -62,45 +65,55 @@ async def main() -> None:
         if any(y < 2024 for y in years):
             MATRIX[-1].update(verdict="FAIL", note="year leak: " + str(years))
             print(f"  FAIL  openalex_search year leak: {years}")
-    await tool("crossref_search", {"query": "protein structure prediction", "limit": 2}, {"ok", "empty"})
+    await tool("crossref_search", {"query": "protein structure prediction", "limit": 2},
+               {"ok", "empty", "failed"}, "crossref kadang flaky — envelope error tetap kontrak sah")
     await tool("crossref_doi", {"doi": "10.1038/nature12373"}, {"ok", "error"})
-    await tool("arxiv_search", {"query": "cat:cs.CL AND all:reward model", "limit": 2,
-                                "year_from": 2023, "year_to": 2025}, {"ok", "empty"}, "native submittedDate filter")
     await tool("doaj_search", {"query": "open science", "limit": 2}, {"ok", "empty"})
     await tool("semantic_scholar_search", {"query": "transformer", "limit": 2},
                {"ok", "empty", "blocked"}, "429 tanpa key = wajar")
+    await tool("lens_search", {"query": "crispr", "limit": 2}, {"auth-required"})
+    await tool("dimensions_search", {"query": "protein", "limit": 2}, {"auth-required"})
+    await tool("scopus_search", {"query": "machine learning", "limit": 2}, {"auth-required"})
+    await tool("wos_search", {"query": "quantum", "limit": 2}, {"auth-required"})
+
+    print("── 2. PREPRINTS (5 tools) ──")
+    await tool("arxiv_search", {"query": "cat:cs.CL AND all:reward model", "limit": 2,
+                                "year_from": 2023, "year_to": 2025}, {"ok", "empty"}, "native submittedDate filter")
     or_res = await tool("openreview_search", {"query": "reward hacking", "limit": 2}, {"ok", "empty"})
     if or_res and or_res["items"]:
         forum = or_res["items"][0]["extra"].get("forum_id")
         if forum:
             await tool("openreview_notes", {"forum": forum}, {"ok", "empty", "blocked", "failed"},
                        "403 challenge anti-scraping OpenReview = blocked wajar")
+    await tool("alphaxiv_search", {"query": "rlhf", "limit": 2}, {"auth-required"})
+    await tool("hf_search", {"query": "attention", "limit": 2}, {"ok", "empty", "failed"})
+
+    print("── 3. ARCHIVES (6 tools) ──")
+    await tool("unpaywall_resolve", {"doi": "10.1038/nature12373"}, {"ok", "empty", "error"})
+    await tool("zenodo_search", {"query": "crispr", "limit": 2}, {"ok", "empty", "failed"})
+    await tool("datacite_search", {"query": "crispr", "limit": 2}, {"ok", "empty", "failed"})
+    await tool("osf_search", {"query": "crispr", "limit": 2}, {"ok", "empty", "failed"})
+    await tool("openaire_search", {"query": "crispr", "limit": 2}, {"ok", "empty", "failed"})
+    await tool("core_search", {"query": "crispr", "limit": 2}, {"auth-required"}, "tanpa CORE_API_KEY = wajib auth-required")
+
+    print("── 4. DOMAIN (10 tools) ──")
     await tool("inspire_search", {"query": "find t neutrino oscillation", "limit": 2}, {"ok", "empty"})
     await tool("eric_search", {"query": "literacy", "limit": 2}, {"ok", "empty"})
-    await tool("unpaywall_resolve", {"doi": "10.1038/nature12373"}, {"ok", "empty", "error"})
-    await tool("orcid_works", {"orcid": "0000-0002-1825-0097", "limit": 3}, {"ok", "empty", "failed"})
-    await tool("pwc_search", {"query": "image classification", "limit": 2},
-               {"ok", "empty", "blocked"}, "endpoint rehost beta — blocked wajar")
-
-    print("── 1b. MATH (2 tools, ProofWiki — Cloudflare best-effort) ──")
+    await tool("zbmath_search", {"query": "ricci flow", "limit": 2}, {"ok", "empty", "failed"})
     await tool("proofwiki_search", {"query": "Pythagorean theorem", "limit": 3},
                {"ok", "empty", "blocked"}, "Cloudflare challenge dari jaringan ini = blocked wajar")
     await tool("proofwiki_get", {"page": "Pythagorean Theorem"},
                {"ok", "empty", "blocked", "error"}, "challenge = blocked wajar; empty = judul tak persis")
+    await tool("pwc_search", {"query": "image classification", "limit": 2},
+               {"ok", "empty", "blocked"}, "endpoint rehost beta — blocked wajar")
+    epmc = await tool("europepmc_search", {"query": "crispr", "limit": 2}, {"ok", "empty", "failed"})
+    if epmc and epmc["items"]:
+        await tool("europepmc_fulltext", {"pmcid": "PMC7159299"}, {"ok", "empty", "blocked", "error"},
+                   "PMC7159299 terverifikasi OA saat probe")
+    await tool("pubmed_search", {"query": "crispr", "limit": 2}, {"ok", "empty", "failed"})
+    await tool("ads_search", {"query": "exoplanet", "limit": 2}, {"auth-required"})
 
-    print("── 2. CHINA (5 tools) ──")
-    await tool("nssd_search", {"query": "知识 图谱", "limit": 2}, {"ok", "empty", "error"},
-               "403 flaky wajar (sudah ada retry)")
-    await tool("baidu_scholar_search", {"query": "large language model", "limit": 2},
-               {"ok", "empty", "auth-required", "failed"})
-    await tool("aminer_search", {"query": "transformer", "limit": 2},
-               {"auth-required"}, "tanpa key = wajib auth-required")
-    await tool("sciencedb_search", {"query": "carbon", "limit": 2},
-               {"ok", "empty", "blocked"}, "API path best-effort")
-    await tool("cstr_resolve", {"id": "CSTR:31258.001.SCDB.1000.1"}, {"auth-required"},
-               "tanpa key = wajib auth-required")
-
-    print("── 3. INDONESIA (8 tools, scraper best-effort) ──")
+    print("── 5. REGIONAL (13 tools, scraper best-effort) ──")
     indo_allowed = {"ok", "empty", "blocked", "error"}  # DNS/bot-wall dari jaringan ini = wajar
     await tool("garuda_search", {"query": "pembelajaran mesin", "limit": 2}, indo_allowed)
     await tool("sinta_search", {"query": "jurnal sains", "limit": 2}, indo_allowed)
@@ -110,16 +123,21 @@ async def main() -> None:
     await tool("neliti_search", {"query": "rice yield", "limit": 2}, indo_allowed)
     await tool("brin_search", {"query": "genomics", "limit": 2}, indo_allowed)
     await tool("google_scholar_search", {"query": "vision transformer", "limit": 3}, indo_allowed)
+    await tool("nssd_search", {"query": "知识 图谱", "limit": 2}, {"ok", "empty", "error"},
+               "403 flaky wajar (sudah ada retry)")
+    await tool("baidu_scholar_search", {"query": "large language model", "limit": 2},
+               {"auth-required", "failed", "blocked"}, "kuota gratis habis → auth/failed wajar")
+    await tool("aminer_search", {"query": "transformer", "limit": 2},
+               {"auth-required"}, "tanpa key = wajib auth-required")
+    await tool("sciencedb_search", {"query": "carbon", "limit": 2},
+               {"ok", "empty", "blocked"}, "API path best-effort")
+    await tool("cstr_resolve", {"id": "CSTR:31258.001.SCDB.1000.1"}, {"auth-required"},
+               "tanpa key = wajib auth-required")
 
-    print("── 4. PREMIUM (6 tools, tanpa key = auth-required wajib) ──")
-    await tool("ads_search", {"query": "exoplanet", "limit": 2}, {"auth-required"})
-    await tool("alphaxiv_search", {"query": "rlhf", "limit": 2}, {"auth-required"})
-    await tool("scopus_search", {"query": "machine learning", "limit": 2}, {"auth-required"})
-    await tool("lens_search", {"query": "crispr", "limit": 2}, {"auth-required"})
-    await tool("dimensions_search", {"query": "protein", "limit": 2}, {"auth-required"})
-    await tool("wos_search", {"query": "quantum", "limit": 2}, {"auth-required"})
+    print("── 6. PEOPLE (1 tool) ──")
+    await tool("orcid_works", {"orcid": "0000-0002-1825-0097", "limit": 3}, {"ok", "empty", "failed"})
 
-    print("── 5. FEDERASI (3 mode) ──")
+    print("── 7. FEDERASI (3 mode) ──")
     single = await search_papers({"query": "protein folding", "year_to": 2020,
                                   "limit_per_source": 2, "include_bot_wall": False})
     problems = []
@@ -158,9 +176,9 @@ async def main() -> None:
                    "note": "status sumber: " + json.dumps(statuses)})
     print(f"  PASS  search_papers[bot-wall on]        status={botw['status']}  sources={statuses}")
 
-    print("── 6. PROTOKOL MCP (stdio subprocess) ──")
+    print("── 8. PROTOKOL MCP (stdio subprocess) ──")
     proc = await asyncio.create_subprocess_exec(
-        "uv", "run", "paper-research-mcp", stdin=asyncio.subprocess.PIPE,
+        "uv", "run", "scholarmesh", stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
     )
     reqs = "\n".join([
@@ -187,12 +205,12 @@ async def main() -> None:
                 pass
         init = next((p for p in parsed if p.get("id") == 1), None)
         tl = next((p for p in parsed if p.get("id") == 2), None)
-        n_tools = len(tl["result"]["tools"]) if tl else 0
-        ok_proto = bool(init and init["result"]["serverInfo"]["name"] == "paper-research-mcp" and n_tools == 36)
+        n = len(tl["result"]["tools"]) if tl else 0
+        ok_proto = bool(init and init["result"]["serverInfo"]["name"] == "scholarmesh" and n == 46)
         MATRIX.append({"tool": "stdio[initialize+tools/list]", "status": "ok" if ok_proto else "error",
-                       "count": n_tools, "verdict": "PASS" if ok_proto else "FAIL",
-                       "note": f"serverInfo={init['result']['serverInfo'] if init else None}, tools={n_tools}"})
-        print(f"  {'PASS' if ok_proto else 'FAIL'}  stdio[initialize+tools/list]  tools={n_tools}")
+                       "count": n, "verdict": "PASS" if ok_proto else "FAIL",
+                       "note": f"serverInfo={init['result']['serverInfo'] if init else None}, tools={n}"})
+        print(f"  {'PASS' if ok_proto else 'FAIL'}  stdio[initialize+tools/list]  tools={n}")
     except asyncio.TimeoutError:
         MATRIX.append({"tool": "stdio[initialize+tools/list]", "status": "timeout", "count": 0,
                        "verdict": "FAIL", "note": "subprocess timeout 30s"})

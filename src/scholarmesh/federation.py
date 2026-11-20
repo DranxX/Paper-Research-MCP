@@ -7,9 +7,9 @@ from __future__ import annotations
 
 import asyncio
 
-from .registry import CONNECTORS, call_tool
+from .registry import SOURCES, call_tool
 
-DEFAULT_SOURCES = [c["id"] for c in CONNECTORS if c["category"] != "key"]
+DEFAULT_SOURCES = [c["id"] for c in SOURCES if c["category"] != "key"]
 
 
 def _norm_doi(doi):
@@ -24,7 +24,7 @@ def _norm_title(t) -> str:
 
 
 async def _run_job(query: str, source_id: str, limit_per: int, year_args: dict, timeout_ms: int) -> dict:
-    c = next((x for x in CONNECTORS if x["id"] == source_id), None)
+    c = next((x for x in SOURCES if x["id"] == source_id), None)
     if not c:
         return {"query": query, "source": source_id, "status": "error", "count": 0, "items": [], "meta": {"detail": "connector tidak dikenal"}}
     # Hanya tool yang skemanya memang berbasis query (skip unpaywall/orcid/cstr/openreview_notes).
@@ -64,7 +64,7 @@ async def search_papers(args: dict) -> dict:
     elif include_bot_wall:
         requested = DEFAULT_SOURCES
     else:
-        requested = [c["id"] for c in CONNECTORS if c["id"] in DEFAULT_SOURCES and c["category"] == "free"]
+        requested = [c["id"] for c in SOURCES if c["id"] in DEFAULT_SOURCES and c["category"] == "free"]
 
     year_args = {}
     if args.get("year_from"):
@@ -130,6 +130,6 @@ async def search_papers(args: dict) -> dict:
         "meta": {
             "dedup": "doi lalu title-normalized; satu paper bisa match >1 keyword (matchedQueries)",
             "default_note": "Default: semua sumber tanpa API key (free + bot-wall), 8 request paralel. "
-                            "Premium (scopus/lens/ads/alphaxiv/dimensions/wos/aminer/cstr) via sources[] + env.",
+                            "Key-gated (scopus/lens/ads/alphaxiv/dimensions/wos/aminer/baidu/cstr/core) via sources[] + env.",
         },
     }

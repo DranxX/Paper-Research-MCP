@@ -1,11 +1,11 @@
 # Skills in this repo
 
-Agent skills that pair with Paper-Research-MCP. Same format as any agent-skills
-collection (SKILL.md router + `workflows/` + `references/`).
+Agent skills that pair with ScholarMesh. Same format as any agent-skills collection
+(SKILL.md router + `workflows/` + `references/`).
 
 | Skill | Contents |
 |---|---|
-| [`research/`](research/) | general research methodology: literature scans, claim verification, proof verification, counterexample/falsification hunts, numeric sanity checks — uses the ProofWiki connector + the paper sources of this MCP |
+| [`research/`](research/) | general research methodology: literature scans, claim verification, proof & argument verification, counterexample/falsification hunts, numeric sanity checks — uses the ScholarMesh connectors (ProofWiki, Europe PMC, paper indexes, regional sources) |
 
 ## Install ("skills install something?")
 
@@ -14,8 +14,8 @@ directory** — the skill then auto-triggers on matching tasks (see the `descrip
 frontmatter in its `SKILL.md`).
 
 ```bash
-git clone https://github.com/DranxX/Paper-Research-MCP
-cd Paper-Research-MCP
+git clone https://github.com/DranxX/ScholarMesh
+cd ScholarMesh
 
 # ZCode
 mkdir -p ~/.zcode/skills && cp -r skills/research ~/.zcode/skills/
@@ -31,17 +31,17 @@ Updating = copy the folder again (skill files are self-contained, no external st
 
 ## MCP pairing (optional but recommended)
 
-The skill is designed to pair with the **paper-research-mcp** MCP server from this
-repo — the `proofwiki_*` connector and the paper sources (OpenAlex/arXiv/Crossref/…)
-are what its workflows call. Without the MCP the skill still works: every workflow
-has manual fallbacks (see `references/tool-map.md` inside the skill).
+The skill is designed to pair with the **scholarmesh** MCP server from this repo —
+the `proofwiki_*`, `europepmc_*`, `zbmath_search`, and paper-index connectors are
+what its workflows call. Without the MCP the skill still works: every workflow has
+manual fallbacks (see `references/tool-map.md` inside the skill).
 
 ```jsonc
 {
-  "paper-research": {
+  "scholarmesh": {
     "type": "stdio",
     "command": "uvx",
-    "args": ["paper-research-mcp"]
+    "args": ["scholarmesh"]
   }
 }
 ```

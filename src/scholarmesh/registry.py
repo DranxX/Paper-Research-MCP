@@ -1,54 +1,62 @@
-# registry.py — agregasi semua connector + auth-gating + universal year filter.
+# registry.py — agregasi FLAT semua source connector (satu dict per sumber, bukan per pak)
+# + auth-gating + universal year filter. Negara/disiplin = metadata per sumber;
+# federation & list_sources bisa filter per kategori akses / disiplin / negara.
 
 from __future__ import annotations
 
 import os
 
 from .core import year_filter
-from .sources import china, free, indonesia, premium, proofwiki
+from .sources import archives, domain, indexes, people, preprints, regional
 
-CONNECTORS: list[dict] = [
-    free.CONNECTOR,
-    china.CONNECTOR,
-    indonesia.CONNECTOR,
-    premium.CONNECTOR,
-    proofwiki.CONNECTOR,
+SOURCES: list[dict] = [
+    *indexes.SOURCES,
+    *preprints.SOURCES,
+    *archives.SOURCES,
+    *domain.SOURCES,
+    *regional.SOURCES,
+    *people.SOURCES,
 ]
 
 
-def connector_status(c: dict) -> dict:
+def source_status(c: dict) -> dict:
     env = c.get("auth_env")
     return {
         "id": c["id"],
         "label": c["label"],
         "category": c["category"],
-        "homepage": c.get("homepage"),
         "auth": "required" if c.get("auth_required") else ("optional" if env else "none"),
         "auth_env": env,
         "env_present": bool(os.getenv(env)) if env else None,
+        "disciplines": c.get("disciplines"),
+        "countries": c.get("countries"),
+        "homepage": c.get("homepage"),
         "note": c.get("note"),
         "tools": [t["name"] for t in c["tools"]],
     }
 
 
 def list_sources(category: str | None = None) -> dict:
-    connectors = [c for c in CONNECTORS if not category or c["category"] == category]
-    return {"sources": [connector_status(c) for c in connectors]}
+    sources = [c for c in SOURCES if not category or c["category"] == category]
+    return {"sources": [source_status(c) for c in sources]}
 
 
 def all_tools() -> list[dict]:
     out = []
-    for c in CONNECTORS:
+    for c in SOURCES:
         out.extend(c["tools"])
     return out
 
 
 async def call_tool(name: str, args: dict | None = None) -> dict:
     args = args or {}
-    for c in CONNECTORS:
+    for c in SOURCES:
         tool = next((x for x in c["tools"] if x["name"] == name), None)
         if not tool:
             continue
+        # Auth-gating: hanya source yang MENDEKLARASIKAN gate keras (auth_required=True
+        # + satu env). Source dengan gate multi-env/behavioral (cstr, baidu) self-gate
+        # di handler masing-masing.
         if c.get("auth_required") and c.get("auth_env") and not os.getenv(c["auth_env"]):
             return {"status": "auth-required", "source": c["id"], "count": 0, "items": [],
                     "meta": {"env": c["auth_env"],

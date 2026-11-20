@@ -62,5 +62,5 @@ another. Produce a small comparison table (claim conditions vs found-result cond
   (rule 0.2) and route to original work.
 
 ## Fallback without MCP
-Google Scholar → zbMATH Open (math reviews, free) → PubMed (biomed) → arXiv listing;
-field-specific portals per [references/tool-map.md](../references/tool-map.md).
+Google Scholar → zbMATH web (math reviews, free) → PubMed web (biomed) → arXiv
+listing; field-specific portals per [references/tool-map.md](../references/tool-map.md).

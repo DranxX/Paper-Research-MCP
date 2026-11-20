@@ -6,9 +6,10 @@ description: >
   validation of proofs, derivations, and structured arguments (mathematics, formal
   logic, computer-science correctness, legal reasoning, philosophy, theoretical
   science), falsification hunts (counterexamples, failed replications, contrary
-  evidence), and numeric sanity checks. Pairs with paper-research-mcp (31 connectors:
-  OpenAlex, Crossref, arXiv, ProofWiki, INSPIRE-HEP, ERIC, DOAJ, OpenReview, Papers
-  with Code, Unpaywall, ORCID, China and Indonesia platforms) but degrades gracefully
+  evidence), and numeric sanity checks. Pairs with ScholarMesh (scholarmesh MCP — 40
+  sources: OpenAlex, Crossref, arXiv, ProofWiki, Europe PMC, PubMed, OpenAIRE, Zenodo,
+  DataCite, OSF, zbMATH, INSPIRE-HEP, ERIC, DOAJ, OpenReview, Papers with Code,
+  Unpaywall, ORCID, China and Indonesia platforms) but degrades gracefully
   without it (manual fallbacks everywhere). Trigger when the user asks to survey a
   topic, find prior work, verify a claim/proof/argument/theorem, check whether a
   result is already known, disprove something, find counterexamples, or sanity-check
@@ -21,9 +22,10 @@ user-invocable: true
 One skill for research-grade work across fields: finding prior results, verifying
 claims, proofs, and arguments, falsifying what looks wrong, and mapping a
 literature — with public evidence sources (OpenAlex, Crossref, arXiv, ProofWiki,
-INSPIRE-HEP, DOAJ, ERIC, OpenReview, Papers with Code, Unpaywall, ORCID, China and
-Indonesia platforms) accessed through the **paper-research-mcp** server when
-connected, or manual fallbacks when not.
+Europe PMC, PubMed, OpenAIRE, Zenodo, DataCite, OSF, zbMATH, INSPIRE-HEP, DOAJ,
+ERIC, OpenReview, Papers with Code, Unpaywall, ORCID, China and Indonesia platforms)
+accessed through the **scholarmesh** server when connected, or manual fallbacks
+when not.
 
 Structure: `workflows/` (execution procedures) + `references/` (knowledge base).
 
@@ -78,22 +80,22 @@ alone for survey tasks.
 | Proof strategies + general logic (valid forms, fallacies, validity vs soundness) | [references/proof-techniques.md](references/proof-techniques.md) |
 | Rigor audit — formal arguments (§1–9), empirical claims (§10), fallacies (§11) | [references/rigor-checklist.md](references/rigor-checklist.md) |
 
-## 3. Pairing with paper-research-mcp
+## 3. Pairing with ScholarMesh
 
-The skill is designed to pair with the **paper-research-mcp** server (same repo).
+The skill is designed to pair with the **scholarmesh** MCP server (same repo).
 Source discipline: **match the field to the connector** (full table in
 [references/tool-map.md](references/tool-map.md)):
 
-- **Math** — `proofwiki_search`/`proofwiki_get` (canon + complete proofs), `arxiv_search` (`cat:math.*`)
-- **Formal logic / philosophy / law** — `proofwiki_search` (Logic pages: propositional
-  & predicate calculus results), `doaj_search`, `search_papers`; PhilPapers / Stanford
-  Encyclopedia of Philosophy / SSRN (manual)
-- **CS / ML / AI** — `arxiv_search` (`cat:cs.*`), `pwc_search` (implementations), `openreview_search`/`openreview_notes` (peer review trails), `alphaxiv_search` (key)
-- **Physics** — `inspire_search` (INSPIRE-HEP)
-- **Multidisciplinary / life & social sciences** — `search_papers` (federated), `openalex_search`, `crossref_search`, `doaj_search`
+- **Math** — `proofwiki_search`/`proofwiki_get` (canon + complete proofs), `zbmath_search` (MSC-coded reviews), `arxiv_search` (`cat:math.*`)
+- **Formal logic / philosophy / law** — `proofwiki_search` (Logic pages), `doaj_search`, `search_papers`; PhilPapers / Stanford Encyclopedia of Philosophy / SSRN (manual)
+- **CS / ML / AI** — `arxiv_search` (`cat:cs.*`), `hf_search` (community-trending ML), `pwc_search` (implementations), `openreview_search`/`openreview_notes` (peer review trails), `alphaxiv_search` (key)
+- **Physics / astronomy** — `inspire_search` (INSPIRE-HEP), `ads_search` (key)
+- **Biomed / life sciences** — `europepmc_search` (+ `europepmc_fulltext` for OA full text), `pubmed_search`
+- **Multidisciplinary / social sciences** — `search_papers` (federated), `openalex_search`, `crossref_search`, `doaj_search`, `openaire_search`
+- **Datasets / software / OA archives** — `zenodo_search`, `datacite_search`, `osf_search`, `unpaywall_resolve`, `core_search` (key)
 - **Education** — `eric_search`
 - **Open access & metadata** — `unpaywall_resolve`, `crossref_doi`, `orcid_works`
-- **China platforms** — `nssd_search`, `baidu_scholar_search`, `aminer_search` (key), `sciencedb_search`, `cstr_resolve` (key)
+- **China platforms** — `nssd_search`, `baidu_scholar_search` (key), `aminer_search` (key), `sciencedb_search`, `cstr_resolve` (key)
 - **Indonesia** — `garuda_search`, `sinta_search`, `onesearch_search`, `rama_search`, `moraref_search`, `neliti_search`, `brin_search`, `google_scholar_search`
 
 Without the MCP: every workflow keeps running via the manual fallbacks in
@@ -116,3 +118,4 @@ TRACE  : step/table → basis (definition/rule/theorem/data source) → status
 GAPS   : <leaps + candidate fixes, if any>
 SOURCES: <each with DOI/URL/citation; ProofWiki quotes carry CC BY-SA attribution>
 ```
+

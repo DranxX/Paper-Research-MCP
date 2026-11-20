@@ -1,5 +1,5 @@
-# server.py — entry point Paper-Research-MCP (stdio transport via MCP SDK, lowlevel Server).
-# Console script: `paper-research-mcp` (lihat [project.scripts] di pyproject.toml).
+# server.py — entry point ScholarMesh (stdio transport via MCP SDK, lowlevel Server).
+# Console scripts: `scholarmesh` (+ legacy alias `paper-research-mcp`) — lihat [project.scripts] pyproject.
 
 from __future__ import annotations
 
@@ -12,13 +12,12 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from .federation import search_papers
-from .registry import CONNECTORS, all_tools, call_tool
+from .registry import SOURCES, all_tools, call_tool
 
-SERVER_INFO = Server("paper-research-mcp")
-VERSION = "0.1.3"
+VERSION = "0.2.0"
 
 logging.basicConfig(level=logging.INFO)
-log = logging.getLogger("paper-research-mcp")
+log = logging.getLogger("scholarmesh")
 
 
 def _search_papers_schema() -> dict:
@@ -29,13 +28,13 @@ def _search_papers_schema() -> dict:
             "queries": {"type": "array", "items": {"type": "string"}, "maxItems": 8,
                         "description": "Beberapa kata kunci sekaligus — dijalankan PARALLEL di semua sumber terpilih, hasil didedup lintas keyword"},
             "sources": {"type": "array", "items": {"type": "string"},
-                        "description": "Opsional — id connector yang dipakai (lihat list_sources). Default: semua non-premium."},
+                        "description": "Opsional — id sumber yang dipakai (lihat list_sources). Default: semua non-key."},
             "year_from": {"type": "integer", "description": "Filter tahun terbit >= (native di openalex/crossref/arxiv/s2 + post-filter universal)"},
             "year_to": {"type": "integer", "description": "Filter tahun terbit <="},
             "limit_per_source": {"type": "integer", "minimum": 1, "maximum": 10, "default": 4},
             "max_results": {"type": "integer", "minimum": 1, "maximum": 50, "default": 30},
             "include_bot_wall": {"type": "boolean", "default": True,
-                                 "description": "false = hanya sumber API resmi (skip scraper Indonesia/Scholar)"},
+                                 "description": "false = hanya sumber API resmi (skip scraper regional/scholar/proofwiki)"},
             "timeout_ms": {"type": "integer", "default": 30000},
         },
         "additionalProperties": False,
@@ -49,19 +48,25 @@ async def _search_papers(args: dict) -> list[types.TextContent]:
 
 async def _list_sources(args: dict) -> list[types.TextContent]:
     category = (args or {}).get("category")
-    result = {"sources": [c for c in [
-        {**{"id": c["id"], "label": c["label"], "category": c["category"],
-            "auth": "required" if c.get("auth_required") else ("optional" if c.get("auth_env") else "none"),
-            "env": c.get("auth_env"), "homepage": c.get("homepage"), "note": c.get("note"),
-            "tools": [t["name"] for t in c["tools"]]},
-        } for c in CONNECTORS if not category or c["category"] == category]]}
     import os
-    for s in result["sources"]:
-        s["env_set"] = bool(os.getenv(s["env"])) if s["env"] else None
+    sources = []
+    for c in SOURCES:
+        if category and c["category"] != category:
+            continue
+        env = c.get("auth_env")
+        sources.append({
+            "id": c["id"], "label": c["label"], "category": c["category"],
+            "auth": "required" if c.get("auth_required") else ("optional" if env else "none"),
+            "env": env, "env_set": bool(os.getenv(env)) if env else None,
+            "disciplines": c.get("disciplines"), "countries": c.get("countries"),
+            "homepage": c.get("homepage"), "note": c.get("note"),
+            "tools": [t["name"] for t in c["tools"]],
+        })
+    result = {"sources": sources}
     return [types.TextContent(type="text", text=json.dumps(result, ensure_ascii=False, indent=2))]
 
 
-server = Server("paper-research-mcp")
+server = Server("scholarmesh")
 
 
 @server.list_tools()
@@ -73,13 +78,13 @@ async def list_tools() -> list[types.Tool]:
                         "Mode: (1) spesifik — `query` tunggal; (2) parallel multi-keyword — `queries: [\"kata1\",\"kata2\"]` "
                         "dijalankan paralel di semua sumber, satu paper yang match >1 keyword ditandai matchedQueries. "
                         "Bisa dibatasi tanggal via `year_from`/`year_to` (dipass native ke API yang mendukung + post-filter universal). "
-                        "Default: semua sumber tanpa API key; premium via sources[].",
+                        "Default: semua sumber tanpa API key; key-gated via sources[].",
             inputSchema=_search_papers_schema(),
         ),
         types.Tool(
             name="list_sources",
-            description="Daftar semua connector paper-research-mcp: kategori akses (free/bot-wall/key), "
-                        "env var yang dibutuhkan, status env saat ini, tools per connector.",
+            description="Daftar semua sumber ScholarMesh: kategori akses (free/bot-wall/key), disiplin & negara, "
+                        "env var yang dibutuhkan, status env saat ini, tools per sumber.",
             inputSchema={"type": "object",
                          "properties": {"category": {"type": "string", "enum": ["free", "bot-wall", "key"],
                                                      "description": "Filter opsional per kategori"}},
@@ -112,8 +117,8 @@ async def _serve() -> None:
 
 def main() -> None:
     """MCP stdio entry point."""
-    log.info("paper-research-mcp v%s: %d tools, %d connector packs ready (stdio)",
-             VERSION, 2 + len(all_tools()), len(CONNECTORS))
+    log.info("scholarmesh v%s: %d tools, %d sources ready (stdio)",
+             VERSION, 2 + len(all_tools()), len(SOURCES))
     try:
         asyncio.run(_serve())
     except KeyboardInterrupt:

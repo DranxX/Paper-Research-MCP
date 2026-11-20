@@ -22,11 +22,11 @@ Preprints for the frontier: `arxiv_search` with field categories
 ### 3. Field-specific sources
 | Field | Primary | Supplements |
 |---|---|---|
-| Math | arXiv `math.*`, ProofWiki | zbMATH Open (manual, free, MSC codes as keywords) |
+| Math | arXiv `math.*`, `zbmath_search`, ProofWiki | zbMATH web for MSC browsing |
 | Formal logic / philosophy / law | ProofWiki Logic pages, `doaj_search`, `search_papers` | PhilPapers, Stanford Encyclopedia of Philosophy, SSRN (manual) |
-| CS / ML / AI | arXiv `cs.*` | `pwc_search` (code), `openreview_search` (reviews/rebuttals) |
+| CS / ML / AI | arXiv `cs.*`, `hf_search` | `pwc_search` (code), `openreview_search` (reviews/rebuttals) |
 | Physics | `inspire_search` | arXiv `physics.*`/`gr-qc`/`hep-*` |
-| Life sciences / medicine | `openalex_search`, `crossref_search` | PubMed (manual); prefer meta-analyses first |
+| Life sciences / medicine | `europepmc_search`, `pubmed_search` | prefer meta-analyses first |
 | Education | `eric_search` | DOAJ |
 | Social sciences / humanities | `openalex_search`, `doaj_search` | regional platforms |
 | China literature | `nssd_search`, `baidu_scholar_search`, `sciencedb_search` | `aminer_search` (key) |

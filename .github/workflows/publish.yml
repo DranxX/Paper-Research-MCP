@@ -2,8 +2,9 @@
 # Prasyarat (jalur B — Trusted Publishing):
 #   1. Push repo ini ke GitHub (Owner/Repository harus sama dengan yang didaftar
 #      di pypi.org → Account Settings → Publishing → pending publisher).
-#   2. Di PyPI pending publisher form: PyPI Project Name = paper-research-mcp,
+#   2. Di PyPI pending publisher form: PyPI Project Name = scholarmesh,
 #      Owner = <github user>, Repository name = <repo>, Workflow name = publish.yml.
+#      (paper-research-mcp lama tidak di-publish lagi via jalur ini — deprecated.)
 #   3. Buat GitHub Release → workflow jalan → ter-publish tanpa token.
 
 name: Publish to PyPI

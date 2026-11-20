@@ -1,4 +1,5 @@
-# Paper-Research-MCP — shared helpers (port of core.js).
+# ScholarMesh — shared helpers: standardized result schema (Reference.md §6), envelope
+# contract, httpx with timeouts, year filter. Every connector returns the same shape.
 # Standardized result schema (Reference.md §6): metadata, abstract, DOI, source,
 # full-text access, provenance — every connector returns the same envelope.
 
@@ -11,7 +12,7 @@ from typing import Any
 
 import httpx
 
-UA = "paper-research-mcp/0.1 (federated academic research agent; educational use)"
+UA = "scholarmesh/0.2 (federated academic research agent; educational use)"
 DEFAULT_TIMEOUT = 15.0
 
 _TAG_RE = re.compile(r"<[^>]*>")

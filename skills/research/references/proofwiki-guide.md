@@ -10,7 +10,7 @@ reference. Weaknesses (stated honestly): not formally peer-reviewed — canonica
 theorems are heavily cross-checked, niche topics can have gaps; for publishable work,
 cross-check primary sources.
 
-## Access via paper-research-mcp
+## Access via ScholarMesh (scholarmesh MCP)
 Two tools in the `proofwiki` connector (MediaWiki API `api.php`, free, no key):
 
 | Tool | For | Notes |
