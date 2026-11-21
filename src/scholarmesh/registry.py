@@ -6,8 +6,12 @@ from __future__ import annotations
 
 import os
 
+from . import cache
 from .core import year_filter
 from .sources import archives, domain, indexes, people, preprints, regional
+
+SAFETY_NOTICE = ("Untrusted external content — metadata/abstrak diparse dari web. "
+                 "Verifikasi ke sumber primer sebelum dipakai sebagai dasar argumen.")
 
 SOURCES: list[dict] = [
     *indexes.SOURCES,
@@ -50,6 +54,10 @@ def all_tools() -> list[dict]:
 
 async def call_tool(name: str, args: dict | None = None) -> dict:
     args = args or {}
+    # Cache lookup dulu (fail-open; hit membawa meta.cache.hit=True) — key = tool + FULL args.
+    cached = cache.get(name, args)
+    if cached is not None:
+        return cached
     for c in SOURCES:
         tool = next((x for x in c["tools"] if x["name"] == name), None)
         if not tool:
@@ -71,5 +79,9 @@ async def call_tool(name: str, args: dict | None = None) -> dict:
             result["meta"] = {**(result.get("meta") or {}),
                               "year_filter": {"from": args.get("year_from"), "to": args.get("year_to"),
                                               "dropped_unknown_or_out_of_range": dropped}}
+        # Safety notice untuk konten hasil scraping (hygiene prompt-injection, absorb ytdlp).
+        if c["category"] == "bot-wall" and result.get("status") == "ok":
+            result["meta"]["safety_notice"] = SAFETY_NOTICE
+        cache.put(name, args, result)
         return result
     raise LookupError(f"Tool tidak ditemukan: {name}")

@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scholarmesh"
-version = "0.5.5"
-description = "ScholarMesh — federated academic research retrieval MCP: 40 sources (OpenAlex, Crossref, arXiv, Europe PMC, PubMed, OpenAIRE, Zenodo, DataCite, OSF, zbMATH, ProofWiki, Indonesia & China platforms, premium indexes) behind 46 tools with one standardized result schema and parallel multi-keyword federation."
+version = "0.6.0"
+description = "ScholarMesh — federated academic research retrieval MCP: 43 sources (OpenAlex, Crossref, arXiv, Europe PMC, PubMed, OpenAIRE, Zenodo, DataCite, OSF, zbMATH, ProofWiki, J-STAGE, CiNii, WHO IRIS, Indonesia & China platforms, premium indexes) behind 50 tools with one standardized result schema, parallel multi-keyword federation, and a TTL cache."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

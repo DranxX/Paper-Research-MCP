@@ -14,7 +14,7 @@ from mcp.server.stdio import stdio_server
 from .federation import search_papers
 from .registry import SOURCES, all_tools, call_tool
 
-VERSION = "0.5.5"
+VERSION = "0.6.0"
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("scholarmesh")
@@ -66,6 +66,29 @@ async def _list_sources(args: dict) -> list[types.TextContent]:
     return [types.TextContent(type="text", text=json.dumps(result, ensure_ascii=False, indent=2))]
 
 
+async def _get_capabilities(args: dict) -> list[types.TextContent]:
+    # Introspeksi serverk (absorb youtube-research-mcp get_capabilities): apa yang jalan
+    # dengan/tanpa key, status cache, dan metadata federation — tanpa network.
+    import os
+    from . import cache
+    caps = {
+        "version": VERSION,
+        "sources": len(SOURCES),
+        "by_category": {cat: sum(1 for c in SOURCES if c["category"] == cat)
+                        for cat in ("free", "bot-wall", "key")},
+        "tools": 3 + len(all_tools()),
+        "cache": {"enabled": cache.enabled(), "path": str(cache._db_path()),
+                  "ttl_search_s": cache.TTL_SEARCH},
+        "key_gated": [{"id": c["id"], "env": c["auth_env"],
+                       "env_set": bool(os.getenv(c["auth_env"]))}
+                      for c in SOURCES if c["category"] == "key"],
+        "federation": {"parallel_pool": 8, "dedup": "doi->title",
+                       "provenance": ["alsoIn", "matchedQueries"], "brief": True},
+        "notes": "Semua sumber 'free' + 'bot-wall' jalan tanpa key. blocked = bot-wall jujur, bukan error.",
+    }
+    return [types.TextContent(type="text", text=json.dumps(caps, ensure_ascii=False, indent=2))]
+
+
 server = Server("scholarmesh")
 
 
@@ -90,6 +113,12 @@ async def list_tools() -> list[types.Tool]:
                                                      "description": "Filter opsional per kategori"}},
                          "additionalProperties": False},
         ),
+        types.Tool(
+            name="get_capabilities",
+            description="Introspeksi server: versi, jumlah sumber per kategori, daftar sumber key-gated + status env, "
+                        "status cache (path/TTL), dan konfigurasi federation. Tanpa network.",
+            inputSchema={"type": "object", "properties": {}, "additionalProperties": False},
+        ),
     ]
     for t in all_tools():
         tools.append(types.Tool(name=t["name"], description=t["description"], inputSchema=t["input_schema"]))
@@ -102,6 +131,8 @@ async def call_tool_handler(name: str, args: dict) -> list[types.TextContent]:
         return await _search_papers(args)
     if name == "list_sources":
         return await _list_sources(args)
+    if name == "get_capabilities":
+        return await _get_capabilities(args)
     try:
         result = await call_tool(name, args)
     except LookupError as e:

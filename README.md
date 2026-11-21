@@ -5,15 +5,15 @@
 ### *One query. Forty academic sources. Zero API keys to start.*
 
 **Federated academic research retrieval over MCP** — fan one (or many) keywords out
-to 40 scholarly sources in parallel, deduplicate by DOI, keep provenance, and get
+to 43 scholarly sources in parallel, deduplicate by DOI, keep provenance, and get
 honest failures when a source says no.
 
 [![PyPI](https://img.shields.io/pypi/v/scholarmesh)](https://pypi.org/project/scholarmesh/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
 [![MCP](https://img.shields.io/badge/protocol-MCP_2024--11--05-orange)](https://modelcontextprotocol.io)
-[![Sources](https://img.shields.io/badge/sources-40-8A2BE2)](#-40-sources-46-tools)
-[![Tools](https://img.shields.io/badge/tools-46-brightgreen)](#-40-sources-46-tools)
-[![Tests](https://img.shields.io/badge/e2e-47%20PASS-success)](#-testing)
+[![Sources](https://img.shields.io/badge/sources-43-8A2BE2)](#-43-sources--50-tools)
+[![Tools](https://img.shields.io/badge/tools-50-brightgreen)](#-43-sources--50-tools)
+[![Tests](https://img.shields.io/badge/e2e-51%20PASS-success)](#-testing)
 [![License](https://img.shields.io/badge/license-MIT-yellow)](#-license)
 
 **🇬🇧 English** · [🇮🇩 Bahasa Indonesia](README_ID.md) · [📦 PyPI](https://pypi.org/project/scholarmesh/)
@@ -26,8 +26,9 @@ honest failures when a source says no.
 
 | | |
 |---|---|
-| 🧵 **Federated by design** | `search_papers` runs 1–8 keywords × 30+ sources **in parallel** (pool of 8), dedups by DOI → normalized title, and tags every result with `alsoIn` (where else it appeared) and `matchedQueries` (which keyword hit it) |
-| 🔓 **Free-first** | 18 sources run with **zero keys**; 10 more unlock with a free registration; premium indexes stay dormant until you set env vars |
+| 🧵 **Federated by design** | `search_papers` runs 1–8 keywords × 30+ sources **in parallel** (pool of 8), dedups by DOI → normalized title, tags every result with `alsoIn` (where else it appeared) and `matchedQueries` (which keyword hit it), and closes with a **run brief** (status histogram, year range, corpus size) |
+| ⚡ **TTL cache built-in** | identical queries hit a local SQLite cache (2 h TTL, param-hashed keys, `SCHOLARMESH_CACHE=off` to disable) — bandwidth- and quota-friendly |
+| 🔓 **Free-first** | 21 sources run with **zero keys**; 10 more unlock with a free registration; premium indexes stay dormant until you set env vars |
 | 📅 **Date-bounded everywhere** | `year_from` / `year_to` pass natively to APIs that support it and apply as a universal post-filter everywhere else — no leaks |
 | 🏷 **A catalog you can query** | every source carries `category` (free / bot-wall / key), `disciplines`, and `countries` metadata — `list_sources` filters by all three |
 | 🟢 **Honest failures** | bot-walls and rate limits come back as structured `blocked` envelopes **with a manual-fallback URL** — never a silent lie |
@@ -81,11 +82,11 @@ entirely. Already `uv tool install`ed? `"command": "scholarmesh"` works too.
 
 </details>
 
-**Step 3 — verify & use.** Restart the client and all **46 tools** appear
+**Step 3 — verify & use.** Restart the client and all **50 tools** appear
 (`tools/list`). From a terminal you can also probe:
 
 ```bash
-scholarmesh           # prints: 46 tools, 40 sources ready (stdio) — Ctrl+C exits
+scholarmesh           # prints: 50 tools, 43 sources ready (stdio) — Ctrl+C exits
 uv tool upgrade scholarmesh
 uv tool uninstall scholarmesh
 ```
@@ -138,32 +139,37 @@ of your keywords matched. Bot-walled sources return `{"status": "blocked"}` with
 manual-fallback URL.
 </details>
 
-## 🌐 40 sources · 46 tools
+## 🌐 43 sources · 50 tools
 
 | Category | Sources |
 |---|---|
-| 🟢 **FREE** — 18, on by default | OpenAlex · Crossref · arXiv · DOAJ · OpenReview · Hugging Face Papers · Unpaywall · Zenodo · DataCite · OSF · OpenAIRE · INSPIRE-HEP · ERIC · zbMATH Open · Europe PMC · PubMed · NSSD (China SSH) · ORCID |
+| 🟢 **FREE** — 21, on by default | OpenAlex · Crossref · arXiv · DOAJ · OpenReview · Hugging Face Papers · Unpaywall · Zenodo · DataCite · OSF · OpenAIRE · INSPIRE-HEP · ERIC · zbMATH Open · Europe PMC · PubMed · WHO IRIS · NSSD (China SSH) · J-STAGE 🇯🇵 · CiNii 🇯🇵 · ORCID |
 | 🟡 **FREE, bot-wall** — 12, on by default, honest errors | Semantic Scholar · Papers with Code · Google Scholar · GARUDA 🇮🇩 · SINTA 🇮🇩 · OneSearch 🇮🇩 · RAMA 🇮🇩 · Moraref 🇮🇩 · Neliti 🇮🇩 · BRIN 🇮🇩 · ProofWiki · ScienceDB 🇨🇳 |
 | 🔑 **API KEY** — 10, dormant until env set | CORE *(free registration)* · NASA ADS · AlphaXiv · Scopus · The Lens · Dimensions · Web of Science · Baidu Scholar 🇨🇳 · AMiner 🇨🇳 · CSTR 🇨🇳 |
 
+**Entry points worth knowing:** `search_papers` (federated: parallel `queries:[]`,
+`year_from`/`year_to`, dedup, provenance, run brief) · `list_sources` (catalog with
+category/disciplines/countries/env status) · `get_capabilities` (server introspection,
+zero network) · `europepmc_fulltext` (OA full text for one PMCID).
+
 <details>
-<summary><b>All 46 tools</b></summary>
+<summary><b>All 50 tools</b></summary>
 
 | Group | Tools |
 |---|---|
-| Federation | `search_papers` · `list_sources` |
+| Federation | `search_papers` · `list_sources` · `get_capabilities` |
 | Indexes | `openalex_search` · `crossref_search` · `crossref_doi` · `doaj_search` · `semantic_scholar_search` · `lens_search` ᵏ · `dimensions_search` ᵏ · `scopus_search` ᵏ · `wos_search` ᵏ |
 | Preprints | `arxiv_search` · `openreview_search` · `openreview_notes` · `alphaxiv_search` ᵏ · `hf_search` |
 | Archives | `unpaywall_resolve` · `zenodo_search` · `datacite_search` · `osf_search` · `openaire_search` · `core_search` ᵏ |
-| Domain | `inspire_search` · `eric_search` · `zbmath_search` · `proofwiki_search` · `proofwiki_get` · `pwc_search` · `europepmc_search` · `europepmc_fulltext` · `pubmed_search` · `ads_search` ᵏ |
-| Regional | `garuda_search` · `sinta_search` · `onesearch_search` · `rama_search` · `moraref_search` · `neliti_search` · `brin_search` · `google_scholar_search` · `nssd_search` · `baidu_scholar_search` ᵏ · `aminer_search` ᵏ · `sciencedb_search` · `cstr_resolve` ᵏ |
+| Domain | `inspire_search` · `eric_search` · `zbmath_search` · `proofwiki_search` · `proofwiki_get` · `pwc_search` · `europepmc_search` · `europepmc_fulltext` · `pubmed_search` · `whoiris_search` · `ads_search` ᵏ |
+| Regional | `garuda_search` · `sinta_search` · `onesearch_search` · `rama_search` · `moraref_search` · `neliti_search` · `brin_search` · `google_scholar_search` · `nssd_search` · `baidu_scholar_search` ᵏ · `aminer_search` ᵏ · `sciencedb_search` · `cstr_resolve` ᵏ · `jstage_search` 🇯🇵 · `cinii_search` 🇯🇵 |
 | People | `orcid_works` |
 
 ᵏ = needs an env var (see below)
 </details>
 
 <details>
-<summary><b>🔑 API keys</b> — all optional; 18 sources need none</summary>
+<summary><b>🔑 API keys</b> — all optional; 21 sources need none</summary>
 
 | Env var | Source | Note |
 |---|---|---|
@@ -205,15 +211,16 @@ Details: [skills/README.md](skills/README.md).
 pyproject.toml                ← uv package ([project.scripts] scholarmesh)
 └── src/scholarmesh/
     ├── server.py             ← MCP stdio entry (official `mcp` SDK, lowlevel Server)
-    ├── registry.py           ← flat SOURCES list, auth-gating, universal year post-filter
-    ├── federation.py         ← search_papers: queries×sources parallel (pool 8), dedup, provenance
+    ├── registry.py           ← flat SOURCES list, auth-gating, TTL cache, safety notices
+    ├── cache.py              ← SQLite WAL TTL cache (param-hashed keys, fail-open)
+    ├── federation.py         ← search_papers: queries×sources parallel (pool 8), dedup, provenance, brief
     ├── core.py               ← httpx w/ timeout, standardized item schema, envelopes, year filter
     └── sources/              ← grouped by FUNCTION; geography = metadata per source
         ├── indexes.py    (8)  OpenAlex Crossref DOAJ S2 Lens Dimensions Scopus WoS
         ├── preprints.py  (4)  arXiv OpenReview(2) AlphaXiv HF Papers
         ├── archives.py   (6)  Unpaywall Zenodo DataCite OSF OpenAIRE CORE
-        ├── domain.py     (8)  INSPIRE ERIC zbMATH ProofWiki(2) PwC EuropePMC(2) PubMed ADS
-        ├── regional.py  (13)  GARUDA SINTA OneSearch RAMA Moraref Neliti BRIN GScholar NSSD Baidu AMiner ScienceDB CSTR
+        ├── domain.py     (9)  INSPIRE ERIC zbMATH ProofWiki(2) PwC EuropePMC(2) PubMed WHO-IRIS ADS
+        ├── regional.py  (15)  GARUDA SINTA OneSearch RAMA Moraref Neliti BRIN GScholar NSSD Baidu AMiner ScienceDB CSTR J-STAGE CiNii
         └── people.py     (1)  ORCID
 ```
 
@@ -225,10 +232,11 @@ uv run python tests/light_smoke.py --offline   # zero network
 uv run python tests/e2e_all_tools.py     # full live suite (44 tools + federation + stdio)
 ```
 
-The full suite runs **~48 checks** — every connector tool one by one (envelope-shape
-validation + per-category status expectations), three federation modes, year-filter
-leak checks, and the MCP stdio handshake. Scraper sources returning `blocked` count
-as PASS: **the envelope is the contract, not the network mood**. Last run: **47/47 PASS**.
+The full suite runs **~51 checks** — every connector tool one by one (envelope-shape
+validation + per-category status expectations), a cache-hit check, three federation
+modes, year-filter leak checks, and the MCP stdio handshake. Scraper sources returning
+`blocked` count as PASS: **the envelope is the contract, not the network mood**.
+Last run: **51/51 PASS**.
 
 ## ❓ FAQ
 
@@ -244,7 +252,7 @@ not an error.
 <details>
 <summary>Do I need any API key?</summary>
 
-No. 18 sources work keyless. Keys only raise rate limits (Semantic Scholar, PubMed)
+No. 21 sources work keyless. Keys only raise rate limits (Semantic Scholar, PubMed)
 or unlock premium curated indexes (Scopus, WoS, Lens…).
 </details>
 

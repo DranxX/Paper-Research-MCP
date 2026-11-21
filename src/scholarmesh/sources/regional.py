@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from urllib.parse import quote
 
 from ..core import (auth_required, blocked, empty, failed, http_get, http_post,
                     json_loose, ok, std, strip_html)
@@ -354,6 +355,69 @@ async def _cstr_resolve(a: dict) -> dict:
     )])
 
 
+async def _jstage_search(a: dict) -> dict:
+    # J-STAGE WebAPI (JST, Jepang) — Atom XML, gratis tanpa key (probes 21 Nov 2026: 200).
+    n = min(a.get("limit", 5), 20)
+    q = quote(a["query"], safe="")
+    r = await http_get(f"https://api.jstage.jst.go.jp/searchapi/do?service=3&keyword={q}&count={n}", timeout=20)
+    body = r["body"]
+    if r["status"] != 200 or "<feed" not in body:
+        return failed("jstage", f"HTTP {r['status']} {body[:120]}")
+    items = []
+    for chunk in body.split("<entry>")[1:]:
+        chunk = chunk.split("</entry>")[0]
+
+        def pick(tag: str) -> str:
+            m = re.search(rf"<{tag}[^>]*>([\s\S]*?)</{tag}>", chunk)
+            return strip_html(m.group(1)) if m else ""
+
+        link = re.search(r'<link[^>]*href="([^"]+)"', chunk)
+        year = pick("prism:publicationDate")[:4]
+        items.append(std(
+            title=pick("title"),
+            authors=[m.group(1) for m in re.finditer(r"<name>([\s\S]*?)</name>", chunk)],
+            year=int(year) if year.isdigit() else None,
+            doi=pick("prism:doi") or None,
+            venue=pick("prism:publicationName") or None,
+            abstract=None,  # Atom feed J-STAGE tidak membawa abstract
+            url=link.group(1) if link else None,
+            source="jstage",
+            extra={"material": pick("prism:materialType") or None},
+        ))
+    items = [i for i in items if i]
+    return ok("jstage", items, {"note": "jurnal/prosiding Jepang (J-STAGE, JST) — Atom XML, tanpa key"}) if items else empty("jstage")
+
+
+async def _cinii_search(a: dict) -> dict:
+    # CiNii OpenSearch (NII, Jepang) — JSON-LD @graph, gratis (probes 21 Nov 2026: 200).
+    n = min(a.get("limit", 5), 20)
+    q = quote(a["query"], safe="")
+    r = await http_get(f"https://cir.nii.ac.jp/opensearch/articles?format=json&q={q}&count={n}", timeout=20)
+    j = json_loose(r["body"])
+    graph = (j or {}).get("@graph") or []
+    if not isinstance(graph, list):
+        return failed("cinii", f"HTTP {r['status']} {r['body'][:120]}")
+    items = []
+    for g in graph:
+        if not isinstance(g, dict) or not g.get("title"):
+            continue
+        creators = g.get("dc:creator") or []
+        date = str(g.get("dc:pubdate") or g.get("prism:publicationDate") or g.get("dc:date") or "")
+        items.append(std(
+            title=g.get("title"),
+            authors=[c.get("name") if isinstance(c, dict) else c for c in creators if c],
+            year=int(date[:4]) if date[:4].isdigit() else None,
+            doi=None,
+            venue=g.get("prism:publicationName") or g.get("dc:publisher"),
+            abstract=None,
+            url=g.get("@id"),
+            source="cinii",
+            extra={"type": g.get("@type")},
+        ))
+    items = [i for i in items if i]
+    return ok("cinii", items, {"note": "index artikel Jepang (CiNii, NII) — JSON-LD, tanpa key"}) if items else empty("cinii")
+
+
 def _regional(id_, label, country, disciplines, note, tools, category="bot-wall", auth_env=None, auth_required=False, homepage=None):
     return {
         "id": id_, "label": label, "category": category,
@@ -416,4 +480,12 @@ SOURCES = [
               "Resolusi identifier wajib clientId+secret; gate di handler (dua env).",
               [{"name": "cstr_resolve", "description": "Resolusi metadata satu CSTR ID (padanan DOI untuk resources China). WAJIB CSTR_CLIENT_ID + CSTR_SECRET.", "input_schema": {"type": "object", "properties": {"id": {"type": "string", "description": "CSTR ID, mis. CSTR:31258.001.SCDB.1000.1"}}, "required": ["id"], "additionalProperties": False}, "handler": _cstr_resolve}],
               category="key", homepage="https://www.cstr.cn"),
+    _regional("jstage", "J-STAGE (Japan Science and Technology Agency)", "JP", ["multidisciplinary"],
+              "WebAPI resmi JST, gratis tanpa key (Atom XML); isi paper/prosiding Jepang lintas bidang.",
+              [{"name": "jstage_search", "description": "Cari artikel jurnal/prosiding Jepang di J-STAGE (JST WebAPI, Atom XML). Free, tanpa key.", "input_schema": SEARCH_SCHEMA, "handler": _jstage_search}],
+              category="free", homepage="https://www.jstage.jst.go.jp"),
+    _regional("cinii", "CiNii (National Institute of Informatics, Japan)", "JP", ["multidisciplinary"],
+              "OpenSearch JSON-LD, gratis; artikel akademik Jepang.",
+              [{"name": "cinii_search", "description": "Cari artikel akademik Jepang di CiNii (NII OpenSearch, JSON-LD). Free, tanpa key.", "input_schema": SEARCH_SCHEMA, "handler": _cinii_search}],
+              category="free", homepage="https://cir.nii.ac.jp"),
 ]

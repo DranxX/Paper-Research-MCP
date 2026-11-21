@@ -6,7 +6,7 @@ description: >
   validation of proofs, derivations, and structured arguments (mathematics, formal
   logic, computer-science correctness, legal reasoning, philosophy, theoretical
   science), falsification hunts (counterexamples, failed replications, contrary
-  evidence), and numeric sanity checks. Pairs with ScholarMesh (scholarmesh MCP — 40
+  evidence), and numeric sanity checks. Pairs with ScholarMesh (scholarmesh MCP — 43
   sources: OpenAlex, Crossref, arXiv, ProofWiki, Europe PMC, PubMed, OpenAIRE, Zenodo,
   DataCite, OSF, zbMATH, INSPIRE-HEP, ERIC, DOAJ, OpenReview, Papers with Code,
   Unpaywall, ORCID, China and Indonesia platforms) but degrades gracefully

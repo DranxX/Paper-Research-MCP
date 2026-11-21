@@ -119,6 +119,19 @@ async def search_papers(args: dict) -> dict:
                     existing["year"] = item["year"]
     merged = list(by_key.values())
 
+    # Brief aggregate (absorb youtube-research-mcp): ringkasan kesehatan run dalam satu objek.
+    hist: dict[str, int] = {}
+    for u in used:
+        hist[u["status"]] = hist.get(u["status"], 0) + 1
+    years = [i["year"] for i in merged if isinstance(i.get("year"), int)]
+    brief = {
+        "sources_used": len(used),
+        "status_histogram": hist,
+        "unique_results": len(merged),
+        "year_range": [min(years), max(years)] if years else None,
+        "abstract_chars": sum(len(i.get("abstract") or "") for i in merged),
+    }
+
     return {
         "status": "ok" if merged else ("empty" if any(u["status"] == "ok" for u in used) else "all-failed"),
         "queries": queries,
@@ -127,6 +140,7 @@ async def search_papers(args: dict) -> dict:
         "items": merged[: args.get("max_results", 30)],
         "coverage": coverage,
         "skipped": skipped,
+        "brief": brief,
         "meta": {
             "dedup": "doi lalu title-normalized; satu paper bisa match >1 keyword (matchedQueries)",
             "default_note": "Default: semua sumber tanpa API key (free + bot-wall), 8 request paralel. "

@@ -81,11 +81,11 @@ melewati masalah itu. Sudah `uv tool install`? `"command": "scholarmesh"` juga b
 
 </details>
 
-**Langkah 3 — cek & pakai.** Restart client dan semua **46 tools** muncul otomatis
+**Langkah 3 — cek & pakai.** Restart client dan semua **50 tools** muncul otomatis
 (`tools/list`). Dari terminal juga bisa diprobe:
 
 ```bash
-scholarmesh           # mencetak: 46 tools, 40 sources ready (stdio) — Ctrl+C keluar
+scholarmesh           # mencetak: 50 tools, 43 sources ready (stdio) — Ctrl+C keluar
 uv tool upgrade scholarmesh
 uv tool uninstall scholarmesh
 ```
@@ -138,25 +138,25 @@ keyword lu yang mana yang match. Sumber bot-wall balik `{"status": "blocked"}`
 beserta URL fallback manual.
 </details>
 
-## 🌐 40 sumber · 46 tools
+## 🌐 43 sumber · 50 tools
 
 | Kategori | Sumber |
 |---|---|
-| 🟢 **FREE** — 18, default on | OpenAlex · Crossref · arXiv · DOAJ · OpenReview · Hugging Face Papers · Unpaywall · Zenodo · DataCite · OSF · OpenAIRE · INSPIRE-HEP · ERIC · zbMATH Open · Europe PMC · PubMed · NSSD (SSH China) · ORCID |
+| 🟢 **FREE** — 21, default on | OpenAlex · Crossref · arXiv · DOAJ · OpenReview · Hugging Face Papers · Unpaywall · Zenodo · DataCite · OSF · OpenAIRE · INSPIRE-HEP · ERIC · zbMATH Open · Europe PMC · PubMed · WHO IRIS · NSSD (SSH China) · J-STAGE 🇯🇵 · CiNii 🇯🇵 · ORCID |
 | 🟡 **FREE, bot-wall** — 12, default on, error jujur | Semantic Scholar · Papers with Code · Google Scholar · GARUDA 🇮🇩 · SINTA 🇮🇩 · OneSearch 🇮🇩 · RAMA 🇮🇩 · Moraref 🇮🇩 · Neliti 🇮🇩 · BRIN 🇮🇩 · ProofWiki · ScienceDB 🇨🇳 |
 | 🔑 **API KEY** — 10, tidur sampai env diisi | CORE *(registrasi gratis)* · NASA ADS · AlphaXiv · Scopus · The Lens · Dimensions · Web of Science · Baidu Scholar 🇨🇳 · AMiner 🇨🇳 · CSTR 🇨🇳 |
 
 <details>
-<summary><b>Daftar 46 tools</b></summary>
+<summary><b>Daftar 50 tools</b></summary>
 
 | Kelompok | Tools |
 |---|---|
-| Federation | `search_papers` · `list_sources` |
+| Federation | `search_papers` · `list_sources` · `get_capabilities` |
 | Indexes | `openalex_search` · `crossref_search` · `crossref_doi` · `doaj_search` · `semantic_scholar_search` · `lens_search` ᵏ · `dimensions_search` ᵏ · `scopus_search` ᵏ · `wos_search` ᵏ |
 | Preprints | `arxiv_search` · `openreview_search` · `openreview_notes` · `alphaxiv_search` ᵏ · `hf_search` |
 | Archives | `unpaywall_resolve` · `zenodo_search` · `datacite_search` · `osf_search` · `openaire_search` · `core_search` ᵏ |
-| Domain | `inspire_search` · `eric_search` · `zbmath_search` · `proofwiki_search` · `proofwiki_get` · `pwc_search` · `europepmc_search` · `europepmc_fulltext` · `pubmed_search` · `ads_search` ᵏ |
-| Regional | `garuda_search` · `sinta_search` · `onesearch_search` · `rama_search` · `moraref_search` · `neliti_search` · `brin_search` · `google_scholar_search` · `nssd_search` · `baidu_scholar_search` ᵏ · `aminer_search` ᵏ · `sciencedb_search` · `cstr_resolve` ᵏ |
+| Domain | `inspire_search` · `eric_search` · `zbmath_search` · `proofwiki_search` · `proofwiki_get` · `pwc_search` · `europepmc_search` · `europepmc_fulltext` · `pubmed_search` · `whoiris_search` · `ads_search` ᵏ |
+| Regional | `garuda_search` · `sinta_search` · `onesearch_search` · `rama_search` · `moraref_search` · `neliti_search` · `brin_search` · `google_scholar_search` · `nssd_search` · `baidu_scholar_search` ᵏ · `aminer_search` ᵏ · `sciencedb_search` · `cstr_resolve` ᵏ · `jstage_search` 🇯🇵 · `cinii_search` 🇯🇵 |
 | People | `orcid_works` |
 
 ᵏ = butuh env var (lihat di bawah)
@@ -225,11 +225,11 @@ uv run python tests/light_smoke.py --offline   # zero network
 uv run python tests/e2e_all_tools.py     # suite live penuh (44 tools + federasi + stdio)
 ```
 
-Suite penuh menjalankan **~48 pengecekan** — semua tool connector satu per satu
-(validasi bentuk envelope + ekspektasi status per kategori), tiga mode federasi, cek
-kebocoran filter tahun, dan handshake MCP stdio. Tool scraper yang `blocked` dihitung
-PASS: **kontraknya adalah envelope yang benar, bukan mood jaringan**. Run terakhir:
-**47/47 PASS**.
+Suite penuh menjalankan **~51 pengecekan** — semua tool connector satu per satu
+(validasi bentuk envelope + cache hit + ekspektasi status per kategori), tiga mode
+federasi, cek kebocoran filter tahun, dan handshake MCP stdio. Tool scraper yang
+`blocked` dihitung PASS: **kontraknya adalah envelope yang benar, bukan mood
+jaringan**. Run terakhir: **51/51 PASS**.
 
 ## ❓ FAQ
 

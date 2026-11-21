@@ -30,7 +30,7 @@ async def main() -> None:
     offline = "--offline" in sys.argv
 
     # 0. import & struktur (zero network)
-    check("import+counts", len(SOURCES) == 40 and len(all_tools()) == 44,
+    check("import+counts", len(SOURCES) == 43 and len(all_tools()) == 47,
           f"{len(SOURCES)} sources, {len(all_tools())} connector tools")
 
     # 1. auth-gate tanpa HTTP (registry menolak sebelum request)
@@ -66,7 +66,7 @@ async def main() -> None:
         tl = next((p for p in parsed if p.get("id") == 2), None)
         n = len(tl["result"]["tools"]) if tl else 0
         name = init["result"]["serverInfo"]["name"] if init else "?"
-        check("stdio handshake", name == "scholarmesh" and n == 46, f"{name}, {n} tools")
+        check("stdio handshake", name == "scholarmesh" and n == 50, f"{name}, {n} tools")
     finally:
         try:
             proc.kill()

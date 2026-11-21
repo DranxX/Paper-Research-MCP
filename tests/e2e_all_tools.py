@@ -1,5 +1,5 @@
-# tests/e2e_all_tools.py — live end-to-end test: 44 connector tools satu per satu
-# + federasi + protokol (48 pengecekan total). Jalankan: uv run python tests/e2e_all_tools.py
+# tests/e2e_all_tools.py — live end-to-end test: 47 connector tools satu per satu
+# + cache hit + federasi + protokol (51 pengecekan). Jalankan: uv run python tests/e2e_all_tools.py
 # Aturan penilaian:
 #   PASS  = envelope sah (status/source/count/items/meta lengkap) DAN status sesuai ekspektasi kategori
 #   FAIL  = exception keluar, envelope rusak, atau status di luar yang diizinkan
@@ -65,6 +65,12 @@ async def main() -> None:
         if any(y < 2024 for y in years):
             MATRIX[-1].update(verdict="FAIL", note="year leak: " + str(years))
             print(f"  FAIL  openalex_search year leak: {years}")
+    # cache hit (absorb ytdlp): argumen sama persis → envelope dari SQLite cache, zero HTTP
+    r2 = await call_tool("openalex_search", {"query": "contrastive learning", "limit": 2, "year_from": 2024})
+    cached = (r2.get("meta") or {}).get("cache", {}).get("hit") is True
+    MATRIX.append({"tool": "cache[openalex 2nd call]", "status": r2.get("status"), "count": r2.get("count", 0),
+                   "verdict": "PASS" if cached else "FAIL", "note": "meta.cache.hit=True expected"})
+    print(f"  {'PASS' if cached else 'FAIL'}  cache[openalex 2nd call]        hit={cached}")
     await tool("crossref_search", {"query": "protein structure prediction", "limit": 2},
                {"ok", "empty", "failed"}, "crossref kadang flaky — envelope error tetap kontrak sah")
     await tool("crossref_doi", {"doi": "10.1038/nature12373"}, {"ok", "error"})
@@ -100,6 +106,7 @@ async def main() -> None:
     await tool("inspire_search", {"query": "find t neutrino oscillation", "limit": 2}, {"ok", "empty"})
     await tool("eric_search", {"query": "literacy", "limit": 2}, {"ok", "empty"})
     await tool("zbmath_search", {"query": "ricci flow", "limit": 2}, {"ok", "empty", "failed"})
+    await tool("whoiris_search", {"query": "tuberculosis", "limit": 2}, {"ok", "empty", "failed"})
     await tool("proofwiki_search", {"query": "Pythagorean theorem", "limit": 3},
                {"ok", "empty", "blocked"}, "Cloudflare challenge dari jaringan ini = blocked wajar")
     await tool("proofwiki_get", {"page": "Pythagorean Theorem"},
@@ -123,6 +130,8 @@ async def main() -> None:
     await tool("neliti_search", {"query": "rice yield", "limit": 2}, indo_allowed)
     await tool("brin_search", {"query": "genomics", "limit": 2}, indo_allowed)
     await tool("google_scholar_search", {"query": "vision transformer", "limit": 3}, indo_allowed)
+    await tool("jstage_search", {"query": "crispr", "limit": 2}, {"ok", "empty", "failed"}, "Atom XML JST — probes 21 Nov: 200")
+    await tool("cinii_search", {"query": "crispr", "limit": 2}, {"ok", "empty", "failed"}, "JSON-LD NII — probes 21 Nov: 200")
     await tool("nssd_search", {"query": "知识 图谱", "limit": 2}, {"ok", "empty", "error"},
                "403 flaky wajar (sudah ada retry)")
     await tool("baidu_scholar_search", {"query": "large language model", "limit": 2},
@@ -206,7 +215,7 @@ async def main() -> None:
         init = next((p for p in parsed if p.get("id") == 1), None)
         tl = next((p for p in parsed if p.get("id") == 2), None)
         n = len(tl["result"]["tools"]) if tl else 0
-        ok_proto = bool(init and init["result"]["serverInfo"]["name"] == "scholarmesh" and n == 46)
+        ok_proto = bool(init and init["result"]["serverInfo"]["name"] == "scholarmesh" and n == 50)
         MATRIX.append({"tool": "stdio[initialize+tools/list]", "status": "ok" if ok_proto else "error",
                        "count": n, "verdict": "PASS" if ok_proto else "FAIL",
                        "note": f"serverInfo={init['result']['serverInfo'] if init else None}, tools={n}"})

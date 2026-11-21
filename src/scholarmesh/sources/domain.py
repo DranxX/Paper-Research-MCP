@@ -226,6 +226,40 @@ async def _pwc_search(a: dict) -> dict:
     return blocked("paperswithcode", "Semua endpoint API rehost tidak ditemukan/berubah (404). Cek https://paperswithcode.co/docs/api atau pakai semantic_scholar_search.")
 
 
+async def _whoiris_search(a: dict) -> dict:
+    # WHO IRIS (Institutional Repository for Information Sharing) — DSpace 7 REST,
+    # gratis tanpa key (probes 21 Nov 2026: 200). Pola parsing identik brin_search.
+    n = min(a.get("limit", 5), 20)
+    q = quote(a["query"], safe="")
+    r = await http_get(f"https://iris.who.int/server/api/discover/search/objects?query={q}&size={n}",
+                       timeout=20, headers={"Accept": "application/json"})
+    try:
+        j = json_loose(r["body"]) or {}
+    except Exception:
+        j = {}
+    objects = (((j.get("_embedded") or {}).get("searchResult") or {}).get("_embedded") or {}).get("objects") or []
+    if not objects and r["status"] != 200:
+        return failed("whoiris", f"HTTP {r['status']} {r['body'][:150]}")
+    items = []
+    for o in objects:
+        m = (o.get("_embedded") or {}).get("indexableObject") or {}
+        md = lambda k: ((m.get("metadata") or {}).get(k) or [{}])[0].get("value")  # noqa: E731
+        issued = md("dc.date.issued")
+        items.append(std(
+            title=md("dc.title"),
+            authors=[x.get("value") for x in (m.get("metadata") or {}).get("dc.contributor.author") or []],
+            year=int(str(issued)[:4]) if issued else None,
+            doi=md("dc.identifier.doi"),
+            venue="WHO IRIS",
+            abstract=md("dc.description.abstract"),
+            url=md("dc.identifier.uri") or (f"https://iris.who.int/items/{m.get('uuid')}" if m.get("uuid") else None),
+            source="whoiris",
+            extra={"type": md("dc.type")},
+        ))
+    items = [i for i in items if i]
+    return ok("whoiris", items) if items else empty("whoiris")
+
+
 async def _ads_search(a: dict) -> dict:
     if not os.getenv("ADS_TOKEN"):
         return auth_required("ads", "ADS_TOKEN", "Daftar token gratis: https://ui.adsabs.harvard.edu/user/settings/token")
@@ -390,6 +424,14 @@ SOURCES = [
         "homepage": "https://pubmed.ncbi.nlm.nih.gov",
         "note": "3 req/s anonim → 10 req/s dengan NCBI_API_KEY gratis (opsional).",
         "tools": [{"name": "pubmed_search", "description": "Cari sitasi biomed/medis di PubMed (NCBI E-utilities: esearch + esummary). Free; NCBI_API_KEY opsional menaikkan 3→10 req/s. Abstract tidak termasuk di esummary — pakai europepmc_fulltext untuk teks OA.", "input_schema": SEARCH_SCHEMA, "handler": _pubmed_search}],
+    },
+    {
+        "id": "whoiris", "label": "WHO IRIS (global health publications, DSpace 7 REST)",
+        "category": "free", "auth_env": None, "auth_required": False,
+        "disciplines": ["medicine", "global-health", "public-health"], "countries": [],
+        "homepage": "https://iris.who.int",
+        "note": "Repository resmi WHO: laporan, guideline, jurnal global health.",
+        "tools": [{"name": "whoiris_search", "description": "Cari publikasi global health di WHO IRIS (laporan, guideline, artikel; repository resmi WHO). Free, tanpa key.", "input_schema": SEARCH_SCHEMA, "handler": _whoiris_search}],
     },
     {
         "id": "ads", "label": "NASA ADS (astronomy & astrophysics)",
