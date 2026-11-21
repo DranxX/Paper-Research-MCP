@@ -14,7 +14,7 @@ from mcp.server.stdio import stdio_server
 from .federation import search_papers
 from .registry import SOURCES, all_tools, call_tool
 
-VERSION = "0.2.0"
+VERSION = "0.5.5"
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("scholarmesh")
